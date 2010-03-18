@@ -7,15 +7,18 @@ use Class::Std::Fast::Storable;
 use Scalar::Util qw(blessed);
 use base qw(SOAP::WSDL::Client::Base);
 
+[% IF USE_TYPEMAP %]
 # only load if it hasn't been loaded before
 require [% XSD.create_typemap_name(service) %]
     if not [% XSD.create_typemap_name(service) %]->can('get_class');
+[% END %]
 
 sub START {
     $_[0]->set_proxy('[% port.first_address.get_location %]') if not $_[2]->{proxy};
+[% IF USE_TYPEMAP %]
     $_[0]->set_class_resolver('[% XSD.create_typemap_name(service) %]')
         if not $_[2]->{class_resolver};
-
+[% END %]
     $_[0]->set_prefix($_[2]->{use_prefix}) if exists $_[2]->{use_prefix};
 }
 
@@ -26,6 +29,8 @@ sub START {
 [%
         END;
 %]
+
+[% INCLUDE Interface/GetNameResolver.tt %]
 
 1;
 

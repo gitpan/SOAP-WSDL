@@ -1,8 +1,10 @@
 use strict;
 use warnings;
+
 package TestResolver;
 sub get_typemap { {} };
 sub get_class {};
+
 package main;
 use Test::More tests => 11;
 

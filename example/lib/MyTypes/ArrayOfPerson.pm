@@ -1,6 +1,15 @@
 package MyTypes::ArrayOfPerson;
 use strict;
 use warnings;
+
+
+our $XML_ATTRIBUTE_CLASS;
+undef $XML_ATTRIBUTE_CLASS;
+
+sub __get_attr_class {
+    return $XML_ATTRIBUTE_CLASS;
+}
+
 use Class::Std::Fast::Storable constructor => 'none';
 use base qw(SOAP::WSDL::XSD::Typelib::ComplexType);
 
@@ -11,14 +20,18 @@ Class::Std::initialize();
 my %NewElement_of :ATTR(:get<NewElement>);
 
 __PACKAGE__->_factory(
-    [ qw(
-        NewElement
+    [ qw(        NewElement
+
     ) ],
     {
-        NewElement => \%NewElement_of,
+        'NewElement' => \%NewElement_of,
     },
     {
-        NewElement => 'MyTypes::Person',
+        'NewElement' => 'MyTypes::Person',
+    },
+    {
+
+        'NewElement' => 'NewElement',
     }
 );
 
@@ -29,7 +42,9 @@ __PACKAGE__->_factory(
 
 
 
+
 1;
+
 
 =pod
 
@@ -39,15 +54,27 @@ MyTypes::ArrayOfPerson
 
 =head1 DESCRIPTION
 
-Perl data type class for the XML Schema defined complextype
+Perl data type class for the XML Schema defined complexType
 ArrayOfPerson from the namespace http://www.example.org/benchmark/.
+
+
+
+
+
 
 =head2 PROPERTIES
 
 The following properties may be accessed using get_PROPERTY / set_PROPERTY
 methods:
 
- NewElement
+=over
+
+=item * NewElement
+
+
+
+
+=back
 
 
 =head1 METHODS
@@ -57,15 +84,15 @@ methods:
 Constructor. The following data structure may be passed to new():
 
  { # MyTypes::ArrayOfPerson
-   NewElement =>    { # MyTypes::Person
-     PersonID =>      { # MyTypes::PersonID
+   NewElement =>  { # MyTypes::Person
+     PersonID =>  { # MyTypes::PersonID
        ID =>  $some_value, # int
      },
      Salutation =>  $some_value, # string
      Name =>  $some_value, # string
      GivenName =>  $some_value, # string
      DateOfBirth =>  $some_value, # date
-     HomeAddress =>      { # MyTypes::Address
+     HomeAddress =>  { # MyTypes::Address
        Street =>  $some_value, # string
        ZIP =>  $some_value, # string
        City =>  $some_value, # string
@@ -73,7 +100,7 @@ Constructor. The following data structure may be passed to new():
        PhoneNumber => $some_value, # PhoneNumber
        MobilePhoneNumber => $some_value, # PhoneNumber
      },
-     WorkAddress =>      { # MyTypes::Address
+     WorkAddress =>  { # MyTypes::Address
        Street =>  $some_value, # string
        ZIP =>  $some_value, # string
        City =>  $some_value, # string
@@ -81,14 +108,17 @@ Constructor. The following data structure may be passed to new():
        PhoneNumber => $some_value, # PhoneNumber
        MobilePhoneNumber => $some_value, # PhoneNumber
      },
-     Contracts =>      { # MyTypes::ArrayOfContract
-       Contract =>        { # MyTypes::Contract
+     Contracts =>  { # MyTypes::ArrayOfContract
+       Contract =>  { # MyTypes::Contract
          ContractID =>  $some_value, # long
          ContractName =>  $some_value, # string
        },
      },
    },
  },
+
+
+
 
 =head1 AUTHOR
 

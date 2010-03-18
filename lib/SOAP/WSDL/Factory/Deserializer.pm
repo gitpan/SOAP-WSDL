@@ -2,7 +2,7 @@ package SOAP::WSDL::Factory::Deserializer;
 use strict;
 use warnings;
 
-use version; our $VERSION = qv('2.00.10');
+use version; our $VERSION = qv('2.00.99_1');
 
 my %DESERIALIZER = (
     '1.1' => 'SOAP::WSDL::Deserializer::XSD',
@@ -130,6 +130,17 @@ passed as a single hash ref:
  code       - The fault code, e.g. 'soap:Server' or the like
  role       - The fault role (actor in SOAP1.1)
  message    - The fault message (faultstring in SOAP1.1)
+
+=item * init_from_caller (optional)
+
+This method is called from the caller (usually a SOAP::WSDL::Client or a 
+SOAP::WSDL::Server subclass) and allows the deserializer to initialize itself.
+
+It is currently called with the following parameters: 
+
+ $caller - the calling object
+ $method - a method info hash ref, containing the parts and stuff of the
+           SOAP method invoked.
 
 =back
 

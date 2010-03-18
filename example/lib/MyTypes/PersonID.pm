@@ -1,6 +1,15 @@
 package MyTypes::PersonID;
 use strict;
 use warnings;
+
+
+our $XML_ATTRIBUTE_CLASS;
+undef $XML_ATTRIBUTE_CLASS;
+
+sub __get_attr_class {
+    return $XML_ATTRIBUTE_CLASS;
+}
+
 use Class::Std::Fast::Storable constructor => 'none';
 use base qw(SOAP::WSDL::XSD::Typelib::ComplexType);
 
@@ -11,14 +20,18 @@ Class::Std::initialize();
 my %ID_of :ATTR(:get<ID>);
 
 __PACKAGE__->_factory(
-    [ qw(
-        ID
+    [ qw(        ID
+
     ) ],
     {
-        ID => \%ID_of,
+        'ID' => \%ID_of,
     },
     {
-        ID => 'SOAP::WSDL::XSD::Typelib::Builtin::int',
+        'ID' => 'SOAP::WSDL::XSD::Typelib::Builtin::int',
+    },
+    {
+
+        'ID' => 'ID',
     }
 );
 
@@ -29,7 +42,9 @@ __PACKAGE__->_factory(
 
 
 
+
 1;
+
 
 =pod
 
@@ -39,15 +54,27 @@ MyTypes::PersonID
 
 =head1 DESCRIPTION
 
-Perl data type class for the XML Schema defined complextype
+Perl data type class for the XML Schema defined complexType
 PersonID from the namespace http://www.example.org/benchmark/.
+
+
+
+
+
 
 =head2 PROPERTIES
 
 The following properties may be accessed using get_PROPERTY / set_PROPERTY
 methods:
 
- ID
+=over
+
+=item * ID
+
+
+
+
+=back
 
 
 =head1 METHODS
@@ -59,6 +86,9 @@ Constructor. The following data structure may be passed to new():
  { # MyTypes::PersonID
    ID =>  $some_value, # int
  },
+
+
+
 
 =head1 AUTHOR
 

@@ -11,7 +11,7 @@ my @dir_from = File::Spec->splitdir($dir);
 unshift @dir_from, $volume if $volume;
 my $url = join '/', @dir_from;
 
-my $HAVE_TEST_WARN =eval { require Test::Warn; };
+my $HAVE_TEST_WARN = eval { require Test::Warn; };
 
 use_ok qw(SOAP::WSDL::Generator::Template::XSD);
 

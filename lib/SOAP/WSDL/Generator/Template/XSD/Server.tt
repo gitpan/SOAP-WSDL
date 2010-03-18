@@ -8,9 +8,11 @@ use Class::Std::Fast::Storable;
 use Scalar::Util qw(blessed);
 use base qw(SOAP::WSDL::Client::Base);
 
+[% IF USE_TYPEMAP -%]
 # only load if it hasn't been loaded before
 require [% XSD.create_typemap_name(service) %]
     if not [% XSD.create_typemap_name(service) %]->can('get_class');
+[% END -%]
 
 my %transport_class_of :ATTR(:name<transport_class> :default<SOAP::WSDL::Server::CGI>);
 my %transport_of :ATTR(:name<transport> :default<()>);
@@ -24,12 +26,44 @@ my $action_map_ref = {
 [% END %]
 };
 
+my $method_map_ref = {
+[% FOREACH operation = binding.get_operation; - %]
+    '[%  operation.get_name %]' => {
+        operation => '[% operation.get_name %]',
+        soap_action => '[% operation.first_operation.get_soapAction %]',
+        style => [% style = operation.first_operation.get_style || binding.get_style;
+            IF style != "document";
+                THROW NOT_SUPPORTED "SOAP::WSDL supports document encoding only - $style found";
+            END;
+        -%]'[% style %]',
+        body => {
+            [% INCLUDE Interface/Body.tt( item = operation.first_input.first_body ); %]
+        },
+        header => {
+            [% INCLUDE Interface/Header.tt( item = operation.first_input.get_header ); %]
+        },
+        headerfault => {
+            [% INCLUDE Interface/Header.tt( item = operation.first_input.first_headerfault ); %]
+        },
+        response => {
+            header => {
+                [% INCLUDE Interface/Response/Header.tt( item = operation.first_output.first_header ); %]
+            },
+            body => {
+                [% INCLUDE Interface/Response/Body.tt( item = operation.first_output.first_body ); %]
+            },
+        }
+    },
+[% END %]
+};
+
 sub START {
     my ($self, $ident, $arg_ref) = @_;
     eval "require $transport_class_of{ $ident }"
         or die "Cannot load transport class $transport_class_of{ $ident }: $@";
     $transport_of{ $ident } = $transport_class_of{ $ident }->new({
         action_map_ref => $action_map_ref,
+        method_map_ref => $method_map_ref,
         class_resolver => '[% XSD.create_typemap_name(service) %]',
         dispatch_to => $dispatch_to{ $ident },
     });

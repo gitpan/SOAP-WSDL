@@ -4,7 +4,7 @@ use warnings;
 use Class::Std::Fast::Storable;
 use base qw(SOAP::WSDL::Base);
 
-use version; our $VERSION = qv('2.00.10');
+use version; our $VERSION = qv('2.00.99_1');
 
 my %length_of           :ATTR(:name<length>         :default<[]>);
 my %minLength_of        :ATTR(:name<minLength>      :default<[]>);
@@ -19,6 +19,7 @@ my %minInclusive        :ATTR(:name<minInclusive>   :default<[]>);
 my %maxExclusive        :ATTR(:name<maxExclusive>   :default<[]>);
 my %maxInclusive        :ATTR(:name<maxInclusive>   :default<[]>);
 
+my %nillable_of         :ATTR(:name<nillable>       :default<()>);
 my %fixed               :ATTR(:name<fixed>          :default<[]>);
 
 my %annotation_of       :ATTR(:name<annotation>     :default<()>);

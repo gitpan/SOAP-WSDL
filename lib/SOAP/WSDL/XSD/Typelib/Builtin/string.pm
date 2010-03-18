@@ -12,6 +12,8 @@ my %char2entity = (
     q{'} => q{&apos;},
 );
 
+# sub get_xmltype { "xs:string" }
+
 sub serialize {
     $_[1] ||= {};
 

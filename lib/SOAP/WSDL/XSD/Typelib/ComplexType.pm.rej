@@ -1,0 +1,91 @@
+***************
+*** 348,378 ****
+                      # serialize complextype elments (of other types) with their
+                      # serializer, but add element tags around.
+                      else {
+-                         # TODO: check whether we have to handle
+-                         # types from different namespaces special, too
+-                         if (!defined $ELEMENT_FORM_QUALIFIED_OF{ $class }
+                              or $ELEMENT_FORM_QUALIFIED_OF{ $class }
+                          ) {
+-                             join q{}, $_->start_tag({ name => $name , %{ $option_ref } })
+-                                 , $_->serialize($option_ref)
+-                                 , $_->end_tag({ name => $name , %{ $option_ref } });
+                          }
+                          else {
+-                             # remove xmlns option if there is one
+-                             my $set_xmlns = delete $option_ref->{xmlns}
+-                                 if (exists $option_ref->{xmlns});
+                              # serialize start tag with xmlns="" if out parent
+                              # did not do that
+                              join q{}, $_->start_tag({
+                                      name => $name,
+                                      %{ $option_ref },
+-                                     ( defined $set_xmlns )
+-                                         ? ()
+-                                         : ( xmlns => undef )
+                                  })
+-                                 # add xmlns = undef to child serialize options
+                                  # to avoid putting xmlns="" everywhere
+-                                 , $_->serialize({ %{$option_ref}, xmlns => undef })
+                                  , $_->end_tag({ name => $name , %{ $option_ref } });
+                          }
+                      }
+--- 352,408 ----
+                      # serialize complextype elments (of other types) with their
+                      # serializer, but add element tags around.
+                      else {
++                         # default for undef is true
++                         if (! defined $ELEMENT_FORM_QUALIFIED_OF{ $class }
+                              or $ELEMENT_FORM_QUALIFIED_OF{ $class }
+                          ) {
++                             # handle types from different namespaces
++                             #
++                             # serialize with last namespace put on stack
++                             # if the last namespace is a change from the
++                             # before-last
++                             #
++                             if (
++                                 exists $option_ref->{ xmlns_stack } 
++                                 && (scalar @{ $option_ref->{ xmlns_stack } } >= 2) 
++                                 && ($option_ref->{ xmlns_stack }->[-1] ne $option_ref->{ xmlns_stack }->[-2])) {
++                                 # warn "New namespace: ", $option_ref->{ xmlns_stack }->[-1]; 
++                                 join q{}, $_->start_tag({ name => $name , 
++                                     xmlns => $option_ref->{ xmlns_stack }->[-1], 
++                                     %{ $option_ref } })
++                                     , $_->serialize($option_ref)
++                                     , $_->end_tag({ name => $name , %{ $option_ref } });
++                             }
++                             else {
++                                 join q{}, $_->start_tag({ name => $name , %{ $option_ref } })
++                                     , $_->serialize($option_ref)
++                                     , $_->end_tag({ name => $name , %{ $option_ref } });
++                             }
+                          }
+                          else {
++                             # in elementFormDefault="unqualified" mode,
++                             # the serialize method has to set
++                             # xmnlns="" on all elements inside a ComplexType
++                             #
++                             # Other serializers usually use prefixes 
++                             # for "unqualified" and just omit all prefixes
++                             # for inner elements 
++                             
++                             # check whether we "had" a xmlns around
++                             my $set_xmlns = delete $option_ref->{xmlns};
++                             
+                              # serialize start tag with xmlns="" if out parent
+                              # did not do that
+                              join q{}, $_->start_tag({
+                                      name => $name,
+                                      %{ $option_ref },
++                                     (! defined $set_xmlns)
++                                         ? (xmlns => "")
++                                         : ()
+                                  })
++                                 # add xmlns = "" to child serialize options
+                                  # to avoid putting xmlns="" everywhere
++                                 , $_->serialize({ %{$option_ref}, xmlns => "" })
+                                  , $_->end_tag({ name => $name , %{ $option_ref } });
+                          }
+                      }

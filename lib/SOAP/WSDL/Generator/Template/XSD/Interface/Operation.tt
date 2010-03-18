@@ -14,10 +14,18 @@ sub [% operation.get_name %] {
             [% INCLUDE Interface/Body.tt( item = operation.first_input.first_body ); %]
         },
         header => {
-            [% INCLUDE Interface/Header.tt( item = operation.first_input.first_header ); %]
+            [% INCLUDE Interface/Header.tt( item = operation.first_input.get_header ); %]
         },
         headerfault => {
             [% INCLUDE Interface/Header.tt( item = operation.first_input.first_headerfault ); %]
+        },
+        response => {
+            header => {
+                [% INCLUDE Interface/Response/Header.tt( item = operation.first_output.first_header ); %]
+            },
+            body => {
+                [% INCLUDE Interface/Response/Body.tt( item = operation.first_output.first_body ); %]
+            },
         }
     }, $body, $header);
 }

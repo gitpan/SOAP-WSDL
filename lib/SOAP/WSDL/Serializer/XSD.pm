@@ -5,12 +5,13 @@ use warnings;
 use Class::Std::Fast::Storable;
 use Scalar::Util qw(blessed);
 
-use version; our $VERSION = qv('2.00.10');
+use version; our $VERSION = qv('2.00.99_1');
 
 use SOAP::WSDL::Factory::Serializer;
 
 my $SOAP_NS = 'http://schemas.xmlsoap.org/soap/envelope/';
 my $XML_INSTANCE_NS = 'http://www.w3.org/2001/XMLSchema-instance';
+my $XML_SCHEMA_NS = 'http://www.w3.org/2001/XMLSchema';
 
 sub serialize {
     my ($self, $args_of_ref) = @_;
@@ -27,6 +28,10 @@ sub serialize {
         $opt->{ namespace }->{ $XML_INSTANCE_NS } = 'xsi';
     }
 
+    if (not $opt->{ namespace }->{ $XML_SCHEMA_NS })
+    {
+        $opt->{ namespace }->{ $XML_SCHEMA_NS } = 'xs';
+    }
     my $soap_prefix = $opt->{ namespace }->{ $SOAP_NS };
 
     # envelope start with namespaces
@@ -132,10 +137,10 @@ Martin Kutter E<lt>martin.kutter fen-net.deE<gt>
 
 =head1 REPOSITORY INFORMATION
 
- $Rev: 851 $
+ $Rev: 849 $
  $LastChangedBy: kutterma $
- $Id: XSD.pm 851 2009-05-15 22:45:18Z kutterma $
- $HeadURL: https://soap-wsdl.svn.sourceforge.net/svnroot/soap-wsdl/SOAP-WSDL/trunk/lib/SOAP/WSDL/Serializer/XSD.pm $
+ $Id: XSD.pm 849 2009-05-15 21:39:29Z kutterma $
+ $HeadURL: http://soap-wsdl.svn.sourceforge.net/svnroot/soap-wsdl/SOAP-WSDL/branches/Typemap/lib/SOAP/WSDL/Serializer/XSD.pm $
 
 =cut
 

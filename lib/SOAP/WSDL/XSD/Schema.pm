@@ -4,7 +4,7 @@ use warnings;
 use Class::Std::Fast::Storable;
 use base qw(SOAP::WSDL::Base);
 
-use version; our $VERSION = qv('2.00.10');
+use version; our $VERSION = qv('2.00.99_1');
 
 # child elements
 my %attributeGroup_of   :ATTR(:name<attributeGroup>  :default<[]>);
@@ -39,10 +39,10 @@ my %version_of              :ATTR(:name<version>              :default<()>);
 # alias type with all variants
 # AUTOMETHOD is WAY too slow..
 {
-    no strict qw/refs/;
+    no strict qw(refs);
     for my $name (qw(simpleType complexType) ) {
-        *{ "set_$name" } = \&set_type;
-        *{ "get_$name" } = \&get_type;
+        *{ "set_$name" }  = \&set_type;
+        *{ "get_$name" }  = \&get_type;
         *{ "push_$name" } = \&push_type;
         *{ "find_$name" } = \&find_type;
     }
@@ -56,6 +56,7 @@ sub push_type {
 
 sub find_element {
     my ($self, @args) = @_;
+
     my @found_at = grep {
         $_->get_targetNamespace() eq $args[0] &&
 #		warn $_->get_name() . " default NS:" . $_->get_xmlns()->{'#default'} . "\n";
@@ -68,6 +69,7 @@ sub find_element {
 
 sub find_type {
     my ($self, @args) = @_;
+
     my @found_at = grep {
         $_->get_targetNamespace() eq $args[0] &&
 #        $_->get_xmlns()->{'#default'} eq $args[0] &&

@@ -1,4 +1,13 @@
-[% IF (complexType.get_variety == 'all');
+[%
+name = complexType.get_name;
+IF name;
+    IF seen.$name; -%]
+{}, # [% XSD.create_xsd_name(complexType);
+        RETURN;
+    END;
+    seen.$name = 1;
+END;
+IF (complexType.get_variety == 'all');
     INCLUDE complexType/POD/all.tt(complexType = complexType);
 ELSIF (complexType.get_variety == 'sequence');
     INCLUDE complexType/POD/all.tt(complexType = complexType);

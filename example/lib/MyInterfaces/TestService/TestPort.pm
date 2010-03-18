@@ -15,27 +15,37 @@ sub START {
         if not $_[2]->{class_resolver};
 }
 
+
+# operating on @_ for performance
 sub ListPerson {
-    my ($self, $body, $header) = @_;
-    die "ListPerson must be called as object method (\$self is <$self>)" if not blessed($self);
-    return $self->SUPER::call({
+    die "ListPerson must be called as object method (\$self is <$_[0]>)" if not blessed($_[0]);
+    # late loading of required classes
+    require MyElements::ListPersonResponse;
+    return $_[0]->SUPER::call({
         operation => 'ListPerson',
         soap_action => 'http://www.example.org/benchmark/ListPerson',
         style => 'document',
         body => {
-            
            'use' => 'literal',
             namespace => '',
             encodingStyle => '',
             parts => [qw( MyElements::ListPerson )],
         },
         header => {
-            
+
         },
         headerfault => {
-            
+
+        },
+        response => {
+            header => {
+                parts => [],
+            },
+            body => {
+                parts => [ qw(MyElements::ListPersonResponse) ],
+            }
         }
-    }, $body, $header);
+    }, $_[1], $_[2]);
 }
 
 
@@ -57,11 +67,11 @@ MyInterfaces::TestService::TestPort - SOAP Interface for the TestService Web Ser
 
  use MyInterfaces::TestService::TestPort;
  my $interface = MyInterfaces::TestService::TestPort->new();
- 
+
  my $response;
  $response = $interface->ListPerson();
 
- 
+
 
 =head1 DESCRIPTION
 
@@ -136,7 +146,7 @@ methods, as long as you meet the structure.
     },
   },,
  );
- 
+
 
 
 =head1 AUTHOR

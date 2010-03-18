@@ -5,7 +5,7 @@ use Class::Std::Fast::Storable;
 use File::Basename;
 use File::Spec;
 
-use version; our $VERSION = qv('2.00.10');
+use version; our $VERSION = qv('2.00.99_1');
 
 use SOAP::WSDL::Generator::Visitor::Typemap;
 use SOAP::WSDL::Generator::Template::Plugin::XSD;
@@ -13,6 +13,7 @@ use base qw(SOAP::WSDL::Generator::Template);
 
 my %output_of                   :ATTR(:name<output>         :default<()>);
 my %typemap_of                  :ATTR(:name<typemap>        :default<({})>);
+my %use_typemap_of              :ATTR(:name<use_typemap>    :default<0>);
 my %silent_of                   :ATTR(:name<silent>         :default<0>);
 
 sub BUILD {
@@ -52,6 +53,7 @@ sub BUILD {
 sub get_name_resolver {
     my $self = shift;
     return SOAP::WSDL::Generator::Template::Plugin::XSD->new({
+        prefix_resolver_class => $self->get_prefix_resolver_class(),
         prefix_resolver => $self->get_prefix_resolver_class()->new({
             namespace_prefix_map => {
                 'http://www.w3.org/2001/XMLSchema' => 'SOAP::WSDL::XSD::Typelib::Builtin',
@@ -74,7 +76,8 @@ sub generate {
     my $self = shift;
     my $opt = shift;
     $self->generate_typelib( $opt );
-    $self->generate_typemap( $opt );
+    $self->generate_typemap( $opt )
+        if $self->get_use_typemap();
 }
 
 sub generate_typelib {
@@ -118,9 +121,10 @@ sub _generate_interface {
 
             $self->_process($template_name,
             {
-                service => $service,
-                port => $port,
-                NO_POD => $arg_ref->{ NO_POD } ? 1 : 0 ,
+                service     => $service,
+                port        => $port,
+                NO_POD      => $arg_ref->{ NO_POD } ? 1 : 0 ,
+                USE_TYPEMAP => $self->get_use_typemap(),
              },
             $output, binmode => ':utf8');
         }

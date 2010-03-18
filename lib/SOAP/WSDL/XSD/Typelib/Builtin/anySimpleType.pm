@@ -10,6 +10,16 @@ my %value_of :ATTR(:get<value> :init_arg<value> :default<()>);
 # don't you never dare to play with this !
 our $___value = \%value_of;
 
+sub get_xmltype { 
+    my $class = ref $_[0];
+    if ($class =~s{^SOAP::WSDL::XSD::Typelib::Builtin::}{}x) {
+        return $class;
+    }
+    else {
+        die "You must override get_xmltype in $class";
+    }
+}
+
 ## use $_[n] for speed - we get called zillions of times...
 # and we don't need to return the last value...
 sub set_value { $value_of{ ${ $_[0] } } = $_[1] }

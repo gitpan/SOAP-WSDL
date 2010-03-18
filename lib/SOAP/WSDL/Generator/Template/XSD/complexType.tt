@@ -47,7 +47,7 @@ methods:
 =over
 
 [% FOREACH element = complexType.get_element -%]
-=item * [% XSD.perl_var_name(XSD.element_name(element)) %]
+=item * [% XSD.perl_var_name(XSD.element_name(element)) %] (min/maxOccurs: [% element.get_minOccurs %]/[% element.get_maxOccurs %])
 [% IF (XSD.perl_var_name(XSD.element_name(element)) == element.get_name); %]
 [% ELSE %]
 Note: The name of this property has been altered, because it didn't match

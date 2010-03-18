@@ -53,8 +53,13 @@ which creates one class for every web service you want to access.
 Moreover, the data types from the WSDL definitions are also wrapped into
 classes and returned to the user as objects.
 
-To find out which class a particular XML node should be, SOAP::WSDL uses
-typemaps. For every Web service, there's also a typemap created.
+To find out which class a particular XML node should be, SOAP::WSDL uses the
+information built into type classes and interfaces.
+
+Older versions of SOAP::WSDL used typemaps. For every Web service, a typemap
+was created. Typemaps were dropped, as they don't allow recursive XML schema
+declarations, eat up more memory and are slower. Old interfaces using typemaps
+are still supported, but you're encouraged to re-generate your interfaces.
 
 =head2 Interface class creation
 
@@ -90,8 +95,9 @@ and you may even want to add custom typemap elements.
 =item * Check the result
 
 There should be a bunch of classes for types (in the MyTypes:: namespace by
-default), elements (in MyElements::), and at least one typemap (in
-MyTypemaps::) and one or more interface classes (in MyInterfaces::).
+default), elements (in MyElements::), and one or more interface classes
+(in MyInterfaces::). Older versions also produced at least one typemap (in
+MyTypemaps::), which isn't needed any more.
 
 If you don't already know the details of the web service you're going to
 instrument, it's now time to read the perldoc of the generated interface

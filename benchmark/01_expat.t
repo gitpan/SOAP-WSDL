@@ -3,15 +3,18 @@ use strict;
 use warnings;
 use lib '../lib';
 use lib '../../Class-Std-Fast/lib';
-use lib '/home/martin/workspace/SOAP-WSDL_XS/blib/lib';
-use lib '/home/martin/workspace/SOAP-WSDL_XS/blib/arch';
+use lib '/home/martin/workspace/SOAP-WSDL_XS-local/blib/lib';
+use lib '/home/martin/workspace/SOAP-WSDL_XS-local/blib/arch';
 use lib '../t/lib';
 # use SOAP::WSDL::SAX::MessageHandler;
+
+#use Class::Std::Fast_XS;
 
 use Benchmark qw(cmpthese timethese);
 use SOAP::WSDL::Expat::MessageParser;
 use SOAP::WSDL::Expat::Message2Hash;
 use SOAP::WSDL::Expat::MessageParser_XS;
+use SOAP::WSDL::Deserializer::XSD_XS;
 use SOAP::Lite;
 use XML::Simple;
 use XML::LibXML;
@@ -23,7 +26,6 @@ my $xml = q{<SOAP-ENV:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-insta
     xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" >
     <SOAP-ENV:Body>
     <MyAtomicComplexTypeElement xmlns="urn:Test" >
-    <test>
         <test2 >Test2</test2>
         <test2 >Test3</test2>
         <test2 >Test4</test2>
@@ -63,14 +65,14 @@ my $xml = q{<SOAP-ENV:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-insta
         <test2 >Test37</test2>
         <test2 >Test38</test2>
         <test2 >Test55</test2>
-    </test>
     </MyAtomicComplexTypeElement>
 </SOAP-ENV:Body></SOAP-ENV:Envelope>};
 
 
 
 my $parser = SOAP::WSDL::Expat::MessageParser->new({
-    class_resolver => 'FakeResolver'
+    class_resolver => 'FakeResolver',
+	body_parts => [ qw(MyAtomicComplexTypeElement) ],
 });
 
 my $hash_parser = SOAP::WSDL::Expat::Message2Hash->new();
@@ -85,9 +87,16 @@ my @data;
 
 my $deserializer = SOAP::Deserializer->new();
 
-my $parser_xs = SOAP::WSDL::Expat::MessageParser_XS->new({
-    class_resolver => 'FakeResolver'
+my $parser_xs = SOAP::WSDL::Deserializer::XSD_XS->new({
+    class_resolver => 'FakeResolver',
+	response_body_parts => [ qw(MyAtomicComplexTypeElement) ],
 });
+
+#print SOAP::WSDL::Expat::MessageParser_XS::_parse_string($xml,
+#    { MyAtomicComplexTypeElement => 'MyAtomicComplexTypeElement' }
+#);
+#print $parser_xs->deserialize($xml);
+# exit;
 
 sub libxml_test {
         my $dom = $libxml->parse_string( $xml );
@@ -126,15 +135,17 @@ sub dom2hash {
     }
     return $_[1];
 }
+
 cmpthese 5000,
 {
-  'SOAP::WSDL (Hash)' => sub { push @data, $hash_parser->parse( $xml ) },
+#  'SOAP::WSDL (Hash)' => sub { push @data, $hash_parser->parse( $xml ) },
   'SOAP::WSDL (XSD)' => sub { push @data, $parser->parse( $xml ) },
-  'SOAP::WSDL_XS (XSD)' => sub { push @data, $parser_xs->parse_string( $xml ) },
-  'XML::Simple (Hash)' => sub { push @data, XMLin $xml },
+  'SOAP::WSDL_XS (XSD)' => sub { push @data, SOAP::WSDL::Expat::MessageParser_XS::_parse_string($xml,
+    { MyAtomicComplexTypeElement => 'MyAtomicComplexTypeElement' } ) },
+#  'XML::Simple (Hash)' => sub { push @data, XMLin $xml },
   'XML::LibXML (DOM)' => sub { push @data,  $libxml->parse_string( $xml ) },
   'XML::LibXML (Hash)' => \&libxml_test,
-  'SOAP::Lite' => sub { push @data, $deserializer->deserialize( $xml ) },
+#  'SOAP::Lite' => sub { push @data, $deserializer->deserialize( $xml ) },
 };
 
 # data classes reside in t/lib/Typelib/
@@ -143,8 +154,7 @@ BEGIN {
     {
         my %class_list = (
             'MyAtomicComplexTypeElement' => 'MyAtomicComplexTypeElement',
-            'MyAtomicComplexTypeElement/test' => 'MyAtomicComplexTypeElement',
-            'MyAtomicComplexTypeElement/test/test2' => 'MyTestElement2',
+            'MyAtomicComplexTypeElement/test2' => 'MyTestElement2',
         );
 
         sub get_typemap { return \%class_list; };
@@ -175,3 +185,10 @@ Output on my machine:
  SOAP::WSDL (Hash)    2222/s       398%               131%              40%                36%                --                -74%              -80%
  SOAP::WSDL_XS (XSD)  8475/s      1798%               780%             434%               420%              281%                  --              -24%
  XML::LibXML (DOM)   11111/s      2389%              1053%             600%               582%              400%                 31%                --
+
+xml length: 1481 bytes
+                      Rate SOAP::WSDL (XSD) XML::LibXML (Hash) SOAP::WSDL_XS (XSD) XML::LibXML (DOM)
+SOAP::WSDL (XSD)     424/s               --               -36%                -90%              -95%
+XML::LibXML (Hash)   662/s              56%                 --                -84%              -92%
+SOAP::WSDL_XS (XSD) 4098/s             867%               519%                  --              -48%
+XML::LibXML (DOM)   7812/s            1744%              1080%                 91%                --

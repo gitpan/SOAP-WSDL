@@ -15,6 +15,9 @@ Build.PL
 Changes
 example/cgi-bin/helloworld.pl
 example/cgi-bin/person.pl
+example/cgi-bin/soap_lite_test.pl
+example/dist/Build.PL
+example/dist/wsdl/Person.wsdl
 example/fortune.pl
 example/genericbarcode.pl
 example/hello.pl
@@ -93,6 +96,7 @@ HACKING
 lib/SOAP/WSDL.pm
 lib/SOAP/WSDL/Base.pm
 lib/SOAP/WSDL/Binding.pm
+lib/SOAP/WSDL/Build.pm
 lib/SOAP/WSDL/Client.pm
 lib/SOAP/WSDL/Client/Base.pm
 lib/SOAP/WSDL/Definitions.pm
@@ -142,6 +146,7 @@ lib/SOAP/WSDL/Generator/Template/XSD/element/POD/contentModel.tt
 lib/SOAP/WSDL/Generator/Template/XSD/element/POD/structure.tt
 lib/SOAP/WSDL/Generator/Template/XSD/Interface.tt
 lib/SOAP/WSDL/Generator/Template/XSD/Interface/Body.tt
+lib/SOAP/WSDL/Generator/Template/XSD/Interface/GetNameResolver.tt
 lib/SOAP/WSDL/Generator/Template/XSD/Interface/Header.tt
 lib/SOAP/WSDL/Generator/Template/XSD/Interface/Operation.tt
 lib/SOAP/WSDL/Generator/Template/XSD/Interface/POD/Element.tt
@@ -150,6 +155,8 @@ lib/SOAP/WSDL/Generator/Template/XSD/Interface/POD/method_info.tt
 lib/SOAP/WSDL/Generator/Template/XSD/Interface/POD/Operation.tt
 lib/SOAP/WSDL/Generator/Template/XSD/Interface/POD/Part.tt
 lib/SOAP/WSDL/Generator/Template/XSD/Interface/POD/Type.tt
+lib/SOAP/WSDL/Generator/Template/XSD/Interface/Response/Body.tt
+lib/SOAP/WSDL/Generator/Template/XSD/Interface/Response/Header.tt
 lib/SOAP/WSDL/Generator/Template/XSD/POD/annotation.tt
 lib/SOAP/WSDL/Generator/Template/XSD/Server.tt
 lib/SOAP/WSDL/Generator/Template/XSD/Server/POD/Message.tt
@@ -199,6 +206,7 @@ lib/SOAP/WSDL/SOAP/HeaderFault.pm
 lib/SOAP/WSDL/SOAP/Operation.pm
 lib/SOAP/WSDL/SOAP/Typelib/Fault.pm
 lib/SOAP/WSDL/SOAP/Typelib/Fault11.pm
+lib/SOAP/WSDL/Starter.pm
 lib/SOAP/WSDL/Transport/HTTP.pm
 lib/SOAP/WSDL/Transport/Loopback.pm
 lib/SOAP/WSDL/Transport/Test.pm
@@ -275,6 +283,8 @@ lib/SOAP/WSDL/XSD/Typelib/Builtin/unsignedInt.pm
 lib/SOAP/WSDL/XSD/Typelib/Builtin/unsignedLong.pm
 lib/SOAP/WSDL/XSD/Typelib/Builtin/unsignedShort.pm
 lib/SOAP/WSDL/XSD/Typelib/ComplexType.pm
+lib/SOAP/WSDL/XSD/Typelib/ComplexType.pm.orig
+lib/SOAP/WSDL/XSD/Typelib/ComplexType.pm.rej
 lib/SOAP/WSDL/XSD/Typelib/Element.pm
 lib/SOAP/WSDL/XSD/Typelib/SimpleType.pm
 lib/SOAP/WSDL/XSD/WhiteSpace.pm
@@ -329,7 +339,10 @@ t/acceptance/wsdl/helloWorld_header.wsdl
 t/acceptance/wsdl/import.xsd
 t/acceptance/wsdl/import_loop.xsd
 t/acceptance/wsdl/message_gateway.wsdl
+t/acceptance/wsdl/MultipleNamespaces.wsdl
+t/acceptance/wsdl/MultipleNamespaces.xsd
 t/acceptance/wsdl/nested_complextype.wsdl
+t/acceptance/wsdl/recursive.wsdl
 t/acceptance/wsdl/WSDLParser-import.wsdl
 t/acceptance/wsdl/WSDLParser-imported.wsdl
 t/acceptance/wsdl/WSDLParser.wsdl
@@ -390,6 +403,7 @@ t/SOAP/WSDL/Factory/Serializer.t
 t/SOAP/WSDL/Factory/Transport.t
 t/SOAP/WSDL/Generator/Template.t
 t/SOAP/WSDL/Generator/Template/XSD/Import.t
+t/SOAP/WSDL/Generator/Template/XSD/MultipleNamespaces.t
 t/SOAP/WSDL/Generator/Template/XSD/Unqualified.t
 t/SOAP/WSDL/Generator/Visitor.t
 t/SOAP/WSDL/Generator/Visitor/Typemap.t
@@ -397,6 +411,7 @@ t/SOAP/WSDL/Generator/XSD.t
 t/SOAP/WSDL/Generator/XSD_custom_resolver.t
 t/SOAP/WSDL/Generator/XSD_dot_names.t
 t/SOAP/WSDL/Generator/XSD_nested_complextype.t
+t/SOAP/WSDL/Generator/XSD_recursive.t
 t/SOAP/WSDL/Generator/XSD_unsupported.t
 t/SOAP/WSDL/Part.t
 t/SOAP/WSDL/PortType.t
@@ -405,6 +420,7 @@ t/SOAP/WSDL/Server.t
 t/SOAP/WSDL/Server/CGI.t
 t/SOAP/WSDL/Server/Mod_Perl2.t
 t/SOAP/WSDL/Server/Simple.t
+t/SOAP/WSDL/SOAP/Typelib/Fault11.t
 t/SOAP/WSDL/Transport/01_Test.t
 t/SOAP/WSDL/Transport/acceptance/test2.xml
 t/SOAP/WSDL/Transport/acceptance/test3.xml

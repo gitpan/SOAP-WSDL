@@ -11,7 +11,7 @@ use SOAP::WSDL::Factory::Serializer;
 use SOAP::WSDL::Factory::Transport;
 use SOAP::WSDL::Expat::MessageParser;
 
-use version; our $VERSION = qv('2.00.10');
+use version; our $VERSION = qv('2.00.99_1');
 
 my %class_resolver_of   :ATTR(:name<class_resolver> :default<()>);
 my %no_dispatch_of      :ATTR(:name<no_dispatch>    :default<()>);
@@ -120,7 +120,7 @@ sub call {
             ? ( $method , (join q{/}, $data->get_xmlns(), $method) )
             : ( $method, q{} );
     $serializer_of{ $ident } ||= SOAP::WSDL::Factory::Serializer->get_serializer({
-        soap_version => $self->get_soap_version(),
+        soap_version => $soap_version_of{ $ident },
     });
 
     my $envelope = $serializer_of{ $ident }->serialize({
@@ -130,7 +130,7 @@ sub call {
         options => {prefix => $prefix_of{ $ident }},
     });
 
-    return $envelope if $self->no_dispatch();
+    return $envelope if $no_dispatch_of{ $ident };
 
     # always quote SOAPAction header.
     # WS-I BP 1.0 R1109
@@ -145,8 +145,7 @@ sub call {
     # get response via transport layer.
     # Normally, SOAP::Lite's transport layer is used, though users
     # may provide their own.
-    my $transport = $self->get_transport();
-    my $response = $transport->send_receive(
+    my $response = $transport_of{ $ident }->send_receive(
        endpoint => $self->get_endpoint(),
        content_type => $content_type_of{ $ident },
        encoding => $encoding_of{ $ident },
@@ -164,9 +163,9 @@ sub call {
         %{ $deserializer_args_of{ $ident } },
     });
 
-    # set class resolver if serializer supports it
-    $deserializer_of{ $ident }->set_class_resolver( $class_resolver_of{ $ident } )
-        if ( $deserializer_of{ $ident }->can('set_class_resolver') );
+    # initialize deserializer from caller
+    $deserializer_of{ $ident }->init_from_caller( $self, $method )
+        if $deserializer_of{ $ident }->can('init_from_caller');
 
     # Try deserializing response - there may be some,
     # even if transport did not succeed (got a 500 response)
@@ -198,7 +197,7 @@ sub call {
 
     # if we had no success (Transport layer error status code)
     # or if transport layer failed
-    if ( ! $transport->is_success() ) {
+    if ( ! $transport_of{ $ident }->is_success() ) {
 
         # generate & return fault if we cannot serialize response
         # or have none...
@@ -206,7 +205,7 @@ sub call {
             code => 'soap:Server',
             role => 'urn:localhost',
             message => 'Error sending / receiving message: '
-                . $transport->message()
+                . $transport_of{ $ident }->message()
         });
     }
 } ## end sub call
@@ -409,10 +408,10 @@ Martin Kutter E<lt>martin.kutter fen-net.deE<gt>
 
 =head1 REPOSITORY INFORMATION
 
- $Rev: 851 $
+ $Rev: 838 $
  $LastChangedBy: kutterma $
- $Id: Client.pm 851 2009-05-15 22:45:18Z kutterma $
- $HeadURL: https://soap-wsdl.svn.sourceforge.net/svnroot/soap-wsdl/SOAP-WSDL/trunk/lib/SOAP/WSDL/Client.pm $
+ $Id: Client.pm 838 2009-03-09 20:10:23Z kutterma $
+ $HeadURL: http://soap-wsdl.svn.sourceforge.net/svnroot/soap-wsdl/SOAP-WSDL/branches/Typemap/lib/SOAP/WSDL/Client.pm $
 
 =cut
 

@@ -1,3 +1,4 @@
+use diagnostics;
 package MyDeserializer;
 use Class::Std::Fast;
 require Test::More;
@@ -31,11 +32,11 @@ package main;
 use strict;
 use warnings;
 use HTTP::Request;
-use Test::More qw(no_plan);
+use Test::More tests => 12;
 use_ok qw(SOAP::WSDL::Server);
 
 my $server = SOAP::WSDL::Server->new();
-$server->set_deserializer('MyDeserializer');
+$server->set_deserializer( MyDeserializer->new() );
 eval { $server->handle(HTTP::Request->new()) };
 like $@, qr{\A No \s handler}x, 'No handler fault caught';
 
@@ -57,8 +58,8 @@ like $@, qr{\A Not \s implemented:}x, 'Not implemented fault caught';
 $server->set_action_map_ref({ Test => 'test'});
 ok $server->handle($request);
 
-$server->set_deserializer('MyDeserializer2');
-eval { $server->handle(HTTP::Request->new()) };
+$server->set_deserializer( MyDeserializer2->new() );
+eval { $server->handle($request) };
 like $@, qr{\A Error \s deserializing}x, 'Error deserializing caught';
 
 sub test {

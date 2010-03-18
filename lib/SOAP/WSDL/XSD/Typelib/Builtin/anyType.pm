@@ -3,9 +3,11 @@ use strict;
 use warnings;
 use Class::Std::Fast::Storable constructor => 'none';
 
-use version; our $VERSION = qv('2.00.10');
+use version; our $VERSION = qv('2.00.99_1');
 
 sub get_xmlns { 'http://www.w3.org/2001/XMLSchema' };
+
+sub get_xmltype { "xs:anyType" }
 
 # start_tag creates a XML start tag either for a XML element or a attribute.
 # The method is highly optimized for performance:
@@ -23,7 +25,11 @@ sub start_tag {
     return join
         q{} ,
         "<$_[1]->{ name }" ,
+        # xsi:type
+        (defined $_[1]->{ derived }) ? qq{ xsi:type="} . $_[0]->get_xmltype . q{"} : (),
+        # xmlns=
         (defined $_[1]->{ xmlns }) ? qq{ xmlns="$_[1]->{ xmlns }"} : (),
+        # attributes
         $_[0]->serialize_attr($_[1]) ,
         q{ xsi:nil="true"/>}
             if ($_[1]->{ nil });
@@ -31,6 +37,9 @@ sub start_tag {
     return join
         q{},
         "<$_[1]->{ name }",
+        # xsi:type
+        (defined $_[1]->{ derived }) ? qq{ xsi:type="} . $_[0]->get_xmltype . q{"} : (),
+        # xmlns=
         (defined $_[1]->{ xmlns }) ? qq{ xmlns="$_[1]->{ xmlns }"} : (),
         $_[0]->serialize_attr($_[1]) ,
         '/>'
@@ -39,6 +48,9 @@ sub start_tag {
     return join
         q{},
         "<$_[1]->{ name }",
+        # xsi:type
+        (defined $_[1]->{ derived }) ? qq{ xsi:type="} . $_[0]->get_xmltype . q{"} : (),
+        # xmlns=
         (defined $_[1]->{ xmlns }) ? qq{ xmlns="$_[1]->{ xmlns }"} : (),
         , $_[0]->serialize_attr($_[1])
         , '>';
@@ -58,8 +70,6 @@ sub end_tag {
 };
 
 sub serialize_attr {};
-
-# sub serialize { q{} };
 
 sub serialize_qualified :STRINGIFY {
     return $_[0]->serialize( { qualified => 1 } );

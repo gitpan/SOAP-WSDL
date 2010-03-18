@@ -2,7 +2,7 @@ package SOAP::WSDL::XSD::Typelib::Element;
 use strict; use warnings;
 use Class::Std::Fast::Storable constructor => 'none';
 
-use version; our $VERSION = qv('2.00.10');
+use version; our $VERSION = qv('2.00.99_1');
 
 my %NAME;
 my %NILLABLE;
@@ -53,9 +53,17 @@ sub start_tag {
         push @attr_from, q{ xsi:nil="true"};
         $ending = '/>';
     }
+
+    # add xmlns if requested
     if (delete $_[1]->{qualified}) {
         push @attr_from, q{ xmlns="} . $_[0]->get_xmlns() . q{"};
     }
+
+    # add xsi:type if requested
+    if (delete $_[1]->{derived}) {
+        push @attr_from, q{ xsi:type="} . $_[0]->get_xmltype() . q{"};
+    }
+
     push @attr_from, $_[0]->serialize_attr();
 
     # do we need to check for name ? Element ref="" should have it's own
@@ -177,10 +185,10 @@ Martin Kutter E<lt>martin.kutter fen-net.deE<gt>
 
 =head1 REPOSITORY INFORMATION
 
- $Rev: 851 $
+ $Rev: 841 $
  $LastChangedBy: kutterma $
- $Id: Element.pm 851 2009-05-15 22:45:18Z kutterma $
- $HeadURL: https://soap-wsdl.svn.sourceforge.net/svnroot/soap-wsdl/SOAP-WSDL/trunk/lib/SOAP/WSDL/XSD/Typelib/Element.pm $
+ $Id: Element.pm 841 2009-03-09 20:17:36Z kutterma $
+ $HeadURL: http://soap-wsdl.svn.sourceforge.net/svnroot/soap-wsdl/SOAP-WSDL/branches/Typemap/lib/SOAP/WSDL/XSD/Typelib/Element.pm $
 
 =cut
 

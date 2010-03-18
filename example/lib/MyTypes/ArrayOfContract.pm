@@ -1,6 +1,15 @@
 package MyTypes::ArrayOfContract;
 use strict;
 use warnings;
+
+
+our $XML_ATTRIBUTE_CLASS;
+undef $XML_ATTRIBUTE_CLASS;
+
+sub __get_attr_class {
+    return $XML_ATTRIBUTE_CLASS;
+}
+
 use Class::Std::Fast::Storable constructor => 'none';
 use base qw(SOAP::WSDL::XSD::Typelib::ComplexType);
 
@@ -11,14 +20,18 @@ Class::Std::initialize();
 my %Contract_of :ATTR(:get<Contract>);
 
 __PACKAGE__->_factory(
-    [ qw(
-        Contract
+    [ qw(        Contract
+
     ) ],
     {
-        Contract => \%Contract_of,
+        'Contract' => \%Contract_of,
     },
     {
-        Contract => 'MyTypes::Contract',
+        'Contract' => 'MyTypes::Contract',
+    },
+    {
+
+        'Contract' => 'Contract',
     }
 );
 
@@ -29,7 +42,9 @@ __PACKAGE__->_factory(
 
 
 
+
 1;
+
 
 =pod
 
@@ -39,15 +54,27 @@ MyTypes::ArrayOfContract
 
 =head1 DESCRIPTION
 
-Perl data type class for the XML Schema defined complextype
+Perl data type class for the XML Schema defined complexType
 ArrayOfContract from the namespace http://www.example.org/benchmark/.
+
+
+
+
+
 
 =head2 PROPERTIES
 
 The following properties may be accessed using get_PROPERTY / set_PROPERTY
 methods:
 
- Contract
+=over
+
+=item * Contract
+
+
+
+
+=back
 
 
 =head1 METHODS
@@ -57,11 +84,14 @@ methods:
 Constructor. The following data structure may be passed to new():
 
  { # MyTypes::ArrayOfContract
-   Contract =>    { # MyTypes::Contract
+   Contract =>  { # MyTypes::Contract
      ContractID =>  $some_value, # long
      ContractName =>  $some_value, # string
    },
  },
+
+
+
 
 =head1 AUTHOR
 

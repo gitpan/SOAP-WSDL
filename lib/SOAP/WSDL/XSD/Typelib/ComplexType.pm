@@ -10,7 +10,7 @@ require Class::Std::Fast::Storable;
 
 use base qw(SOAP::WSDL::XSD::Typelib::Builtin::anyType);
 
-use version; our $VERSION = qv('2.00.10');
+use version; our $VERSION = qv('2.00.99_1');
 
 # remove in 2.1
 our $AS_HASH_REF_WITHOUT_ATTRIBUTES = 0;
@@ -28,7 +28,10 @@ my %xml_attr_of     :ATTR();
 # Namespace handling
 my %xmlns_of        :ATTR();
 
+our $MAY_HAVE_CHILDREN = 1;
+
 # don't you ever dare to use this !
+our $___classes_of_ref = \%CLASSES_OF;
 our $___attributes_of_ref = \%ATTRIBUTES_OF;
 our $___xml_attribute_of_ref = \%xml_attr_of;
 
@@ -331,11 +334,19 @@ sub _factory {
             # do we have some content
             if (defined $element) {
                 $element = [ $element ] if not ref $element eq 'ARRAY';
-                # from 2.00.10 on $NAMES_OF is filled - use || $_; for
+                # from 2.00.09 on $NAMES_OF is filled - use || $_; for
                 # backward compatibility
                 my $name = $NAMES_OF{$class}->{$_} || $_;
+
+                # get element's class for comparing with elements
+                my $element_class = $CLASSES_OF{$class}->{$_};
+
                 my $target_namespace = $_[0]->get_xmlns();
                 map {
+                    my %type_info = ($element_class ne ref $_)
+                        ? (derived => 1)
+                        : ();
+
                     # serialize element elements with their own serializer
                     # but name them like they're named here.
                     # TODO: check. element ref="" has a name???
@@ -343,14 +354,17 @@ sub _factory {
                             # serialize elements of different namespaces
                             # with namespace declaration
                             ($target_namespace ne $_->get_xmlns())
-                                ? $_->serialize({ name => $name, qualified => 1 })
-                                : $_->serialize({ name => $name });
+                                ? $_->serialize({ name => $name, qualified => 1, %type_info })
+                                : $_->serialize({ name => $name
+                                    , %type_info
+                                });
                     }
                     # serialize complextype elments (of other types) with their
                     # serializer, but add element tags around.
                     else {
-                        # default for undef is true
-                        if (! defined $ELEMENT_FORM_QUALIFIED_OF{ $class }
+                        # TODO: check whether we have to handle
+                        # types from different namespaces special, too
+                        if (!defined $ELEMENT_FORM_QUALIFIED_OF{ $class }
                             or $ELEMENT_FORM_QUALIFIED_OF{ $class }
                         ) {
                             # handle types from different namespaces
@@ -366,13 +380,13 @@ sub _factory {
                                 # warn "New namespace: ", $option_ref->{ xmlns_stack }->[-1]; 
                                 join q{}, $_->start_tag({ name => $name , 
                                     xmlns => $option_ref->{ xmlns_stack }->[-1], 
-                                    %{ $option_ref } })
-                                    , $_->serialize($option_ref)
+                                    %{ $option_ref }, %type_info })
+                                    , $_->serialize({ %{ $option_ref }, %type_info })
                                     , $_->end_tag({ name => $name , %{ $option_ref } });
                             }
                             else {
-                                join q{}, $_->start_tag({ name => $name , %{ $option_ref } })
-                                    , $_->serialize($option_ref)
+                                join q{}, $_->start_tag({ name => $name , %{ $option_ref }, %type_info })
+                                    , $_->serialize({ %{ $option_ref }, %type_info })
                                     , $_->end_tag({ name => $name , %{ $option_ref } });
                             }
                         }
@@ -393,6 +407,7 @@ sub _factory {
                             join q{}, $_->start_tag({
                                     name => $name,
                                     %{ $option_ref },
+                                    %type_info,
                                     (! defined $set_xmlns)
                                         ? (xmlns => "")
                                         : ()
@@ -671,10 +686,10 @@ Martin Kutter E<lt>martin.kutter fen-net.deE<gt>
 
 =head1 REPOSITORY INFORMATION
 
- $Rev: 851 $
+ $Rev: 850 $
  $LastChangedBy: kutterma $
- $Id: ComplexType.pm 851 2009-05-15 22:45:18Z kutterma $
- $HeadURL: https://soap-wsdl.svn.sourceforge.net/svnroot/soap-wsdl/SOAP-WSDL/trunk/lib/SOAP/WSDL/XSD/Typelib/ComplexType.pm $
+ $Id: ComplexType.pm 850 2009-05-15 22:31:44Z kutterma $
+ $HeadURL: http://soap-wsdl.svn.sourceforge.net/svnroot/soap-wsdl/SOAP-WSDL/branches/Typemap/lib/SOAP/WSDL/XSD/Typelib/ComplexType.pm $
 
 =cut
 

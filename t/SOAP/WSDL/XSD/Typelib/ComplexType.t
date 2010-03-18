@@ -89,7 +89,7 @@ package main;
 use Test::More tests => 127;
 use Storable;
 
-my $have_warn = eval { require Test::Warn; import Test::Warn; 1; };
+my $have_warn = eval 'use Test::Warn; 1;';
 
 my $obj;
 
@@ -108,7 +108,15 @@ is scalar keys %{ $hash_of_ref }, 0;
 
 SKIP: {
     skip 'Cannot test warnings without Test::Warn', 1 if not $have_warn;
-    warning_is( sub { $obj->add_test() }, 'attempting to add empty value to MyType' );
+    Test::Warn::warning_like(
+        sub { $obj->add_test() },
+        qr{\Aattempting \s to \s add \s empty \s value \s to \s MyType}xms,
+    );
+#   warning_is is broken in 0.11
+#   Test::Warn::warning_is(
+#       sub { $obj->add_test() },
+#       'attempting to add empty value to MyType',
+#   );
 }
 
 $obj = MyType->new({ test => 'Test1'});
@@ -330,7 +338,6 @@ eval {
 };
 like $@, qr{cannot \s use \s CODE}xms, 'error passing a code reference to new()';
 
-# TODO ignore XMLNS (for now)
 $obj = MyType->new({ xmlns => 'fubar'});
 ok defined $obj;
 TODO: {

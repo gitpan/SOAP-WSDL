@@ -25,5 +25,5 @@ my $som = $soap->call(
 
 die $som->fault->{ faultstring } if ($som->fault);
 
-print $som->result, "\n";
+print $som->result(), "\n";
 

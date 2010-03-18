@@ -69,8 +69,10 @@ $generator->generate();
 #$generator->generate_typemap();
 
 if (eval { require Test::Warn; }) {
-   Test::Warn::warning_like( sub { $generator->generate_interface() },
-    qr{\A Multiple \s parts \s detected \s in \s message \s testMultiPartWarning}xms);
+   Test::Warn::warnings_like( sub { $generator->generate_interface() }, [
+    qr{\A Multiple \s parts \s detected \s in \s message \s testMultiPartWarning}xms,
+    qr{\A Multiple \s parts \s detected \s in \s message \s testMultiPartWarning}xms
+	]);
 }
 else {
     $generator->generate_interface();
