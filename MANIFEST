@@ -290,15 +290,12 @@ lib/SOAP/WSDL/XSD/Typelib/SimpleType.pm
 lib/SOAP/WSDL/XSD/WhiteSpace.pm
 LICENSE
 Makefile.PL
-MANIFEST			This list of files
+MANIFEST
 META.yml
 MIGRATING
 README
 t/002_parse_wsdl.t
 t/003_wsdl_based_serializer.t
-t/006_client.t
-t/008_client_wsdl_complexType.t
-t/009_data_classes.t
 t/011_simpleType.t
 t/012_element.t
 t/013_complexType.t
@@ -370,24 +367,6 @@ t/lib/Test/SOAP/WSDL/Tester.pm
 t/lib/Typelib/Base.pm
 t/lib/Typelib/TEnqueueMessage.pm
 t/lib/Typelib/TMessage.pm
-t/SOAP/WSDL.t
-t/SOAP/WSDL/02_port.t
-t/SOAP/WSDL/03_complexType-all.t
-t/SOAP/WSDL/03_complexType-choice.t
-t/SOAP/WSDL/03_complexType-complexContent.t
-t/SOAP/WSDL/03_complexType-element-ref.t
-t/SOAP/WSDL/03_complexType-group.t
-t/SOAP/WSDL/03_complexType-sequence.t
-t/SOAP/WSDL/03_complexType-simpleContent.t
-t/SOAP/WSDL/04_element-complexType.t
-t/SOAP/WSDL/04_element-simpleType.t
-t/SOAP/WSDL/04_element.t
-t/SOAP/WSDL/05_simpleType-list.t
-t/SOAP/WSDL/05_simpleType-restriction.t
-t/SOAP/WSDL/05_simpleType-union.t
-t/SOAP/WSDL/06_keep_alive.t
-t/SOAP/WSDL/11_helloworld.NET.t
-t/SOAP/WSDL/12_binding.t
 t/SOAP/WSDL/Base.t
 t/SOAP/WSDL/Client.t
 t/SOAP/WSDL/Client/Base.t
@@ -493,3 +472,4 @@ t/test.wsdl
 TEST_COVERAGE
 test_html.pl
 TODO
+trace.txt

@@ -4,7 +4,7 @@ use warnings;
 use Class::Std::Fast::Storable;
 use base qw(SOAP::WSDL::Base);
 
-use version; our $VERSION = qv('2.00.99_1');
+use version; our $VERSION = qv('2.00.99_2');
 
 # child elements
 my %attributeGroup_of   :ATTR(:name<attributeGroup>  :default<[]>);
@@ -56,27 +56,24 @@ sub push_type {
 
 sub find_element {
     my ($self, @args) = @_;
-
-    my @found_at = grep {
-        $_->get_targetNamespace() eq $args[0] &&
-#		warn $_->get_name() . " default NS:" . $_->get_xmlns()->{'#default'} . "\n";
-#		$_->get_xmlns()->{'#default'} eq $args[0] &&
-        $_->get_name() eq $args[1]
+    print "Looking for element $args[1] in ", $self->get_targetNamespace(), "\n" if $SOAP::WSDL::Trace;
+    for (@{ $element_of{ ident $self } }) {
+        print "\t{" . $_->get_targetNamespace() . "}" . $_->get_name()."\n" if $SOAP::WSDL::Trace;
+        next if $_->get_targetNamespace() ne $args[0];
+        return $_ if $_->get_name() eq $args[1];
     }
-    @{ $element_of{ ident $self } };
-    return $found_at[0];
+    return;
 }
 
 sub find_type {
     my ($self, @args) = @_;
-
-    my @found_at = grep {
-        $_->get_targetNamespace() eq $args[0] &&
-#        $_->get_xmlns()->{'#default'} eq $args[0] &&
-        $_->get_name() eq $args[1]
+    print "Looking for type $args[1] in ", $self->get_targetNamespace(), "\n" if $SOAP::WSDL::Trace;
+    for (@{ $type_of{ ident $self } }) {
+        print "\t{" . $_->get_targetNamespace() . "}" . $_->get_name()."\n" if $SOAP::WSDL::Trace;
+        next if $_->get_targetNamespace() ne $args[0];
+        return $_ if $_->get_name() eq $args[1];
     }
-    @{ $type_of{ ident $self } };
-    return $found_at[0];
+    return;
 }
 
 1;

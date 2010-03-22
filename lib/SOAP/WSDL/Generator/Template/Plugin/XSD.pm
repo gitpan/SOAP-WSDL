@@ -4,7 +4,7 @@ use warnings;
 use Carp qw(confess);
 use Class::Std::Fast::Storable constructor => 'none';
 use Scalar::Util qw(blessed);
-use version; our $VERSION = qv('2.00.99_1');
+use version; our $VERSION = qv('2.00.99_2');
 
 my %namespace_prefix_map_of :ATTR(:name<namespace_prefix_map>   :default<{}>);
 my %namespace_map_of        :ATTR(:name<namespace_map>          :default<{}>);
@@ -169,9 +169,14 @@ sub element_name {
     my $name = $element->get_name();
     if (! $name) {
         while (my $ref = $element->get_ref()) {
+			# print "looking for: {", join('}', $element->expand( $ref )), "\n";
             $element = $self->get_definitions()->first_types()
                 ->find_element($element->expand( $ref ) );
-            $name = $element->get_name();
+			# print $self->get_definitions()->first_types()->_DUMP;
+			# for (@{$self->get_definitions()->first_types()->get_schema}) {
+			#	print $_->_DUMP;
+			# }
+			$name = $element->get_name();
             last if ($name);
         }
     }

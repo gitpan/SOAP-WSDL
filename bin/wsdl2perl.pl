@@ -5,6 +5,7 @@ use Pod::Usage;
 use Getopt::Long;
 use Term::ReadKey;
 use SOAP::WSDL::Build;
+use SOAP::WSDL;
 
 my %opt = (
   url => '',
@@ -22,6 +23,8 @@ my %opt = (
   client => 1,
   namespaces => 0,
   use_typemap => 0,
+  verbose => 0,
+  xmltypes = 1,
 );
 
 {   # a block just to scope "no warnings"
@@ -70,6 +73,8 @@ GetOptions(\%opt,
     server|s
     namespaces|n
     use_typemap
+    verbose
+    xmltypes
   )
 );
 
@@ -80,7 +85,8 @@ pod2usage( -exit => 1 , verbose => 1 ) if not ($url);
 
 $opt{client} = 0 if $opt{server};
 $opt{location} = $url;
-SOAP::WSDL::Build->wsdl2perl(%opt);
+$SOAP::WSDL::Trace = $opt{verbose};
+SOAP::WSDL::Build->wsdl2perl(types => delete $opt{xmltypes}, %opt);
 
 __END__
 

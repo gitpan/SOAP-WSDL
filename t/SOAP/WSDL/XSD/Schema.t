@@ -1,7 +1,6 @@
 use strict;
 use warnings;
 use Test::More tests => 4;
-
 use SOAP::WSDL::XSD::Element;
 use_ok qw(SOAP::WSDL::XSD::Schema);
 
@@ -10,18 +9,20 @@ my $obj = SOAP::WSDL::XSD::Schema->new({
         SOAP::WSDL::XSD::Element->new({
             name => 'foo',
             xmlns => { '#default' => 'bar' },
+			targetNamespace => 'bar'
         }),
         SOAP::WSDL::XSD::Element->new({
             name => 'foo',
-            targetNamespace => 'baz',
             xmlns => { '#default' => 'baz' },
+			targetNamespace => 'baz'
         }),
         SOAP::WSDL::XSD::Element->new({
             name => 'foobar',
-            targetNamespace => 'bar',
             xmlns => { '#default' => 'bar' },
+			targetNamespace => 'bar'
         }),
-    ]
+    ],
+    targetNamespace => 'bar',
 });
 
 
