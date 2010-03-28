@@ -8,7 +8,7 @@ use SOAP::WSDL::Expat::Message2Hash;
 use SOAP::WSDL::Factory::Deserializer;
 SOAP::WSDL::Factory::Deserializer->register( '1.1', __PACKAGE__ );
 
-use version; our $VERSION = qv('2.00.99_2');
+use version; our $VERSION = qv('2.00.99_3');
 
 sub BUILD {
     my ($self, $ident, $args_of_ref) = @_;
@@ -163,9 +163,9 @@ Martin Kutter E<lt>martin.kutter fen-net.deE<gt>
 
 =head1 REPOSITORY INFORMATION
 
- $Rev: 859 $
+ $Rev: 861 $
  $LastChangedBy: kutterma $
- $Id: Hash.pm 859 2010-03-22 20:17:06Z kutterma $
+ $Id: Hash.pm 861 2010-03-28 10:41:26Z kutterma $
  $HeadURL: http://soap-wsdl.svn.sourceforge.net/svnroot/soap-wsdl/SOAP-WSDL/branches/Typemap/lib/SOAP/WSDL/Deserializer/Hash.pm $
 
 =cut

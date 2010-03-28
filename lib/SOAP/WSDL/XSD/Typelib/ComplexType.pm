@@ -10,7 +10,7 @@ require Class::Std::Fast::Storable;
 
 use base qw(SOAP::WSDL::XSD::Typelib::Builtin::anyType);
 
-use version; our $VERSION = qv('2.00.99_2');
+use version; our $VERSION = qv('2.00.99_3');
 
 # remove in 2.1
 our $AS_HASH_REF_WITHOUT_ATTRIBUTES = 0;
@@ -686,9 +686,9 @@ Martin Kutter E<lt>martin.kutter fen-net.deE<gt>
 
 =head1 REPOSITORY INFORMATION
 
- $Rev: 859 $
+ $Rev: 861 $
  $LastChangedBy: kutterma $
- $Id: ComplexType.pm 859 2010-03-22 20:17:06Z kutterma $
+ $Id: ComplexType.pm 861 2010-03-28 10:41:26Z kutterma $
  $HeadURL: http://soap-wsdl.svn.sourceforge.net/svnroot/soap-wsdl/SOAP-WSDL/branches/Typemap/lib/SOAP/WSDL/XSD/Typelib/ComplexType.pm $
 
 =cut

@@ -241,7 +241,7 @@ is q{<testAtomicRef xmlns="urn:Test"><in>foo</in></testAtomicRef>}
 
 SKIP: {
     eval { require Test::Pod::Content; }
-        or skip 'Cannot test pod content without Test::Pod::Content', 2;
+        or skip 'Cannot test pod content without Test::Pod::Content', 3;
     Test::Pod::Content::pod_section_like(
         'MyTypes::testComplexTypeSequenceWithAttribute',
         'attr',

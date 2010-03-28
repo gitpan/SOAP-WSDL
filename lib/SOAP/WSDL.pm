@@ -6,6 +6,8 @@ use 5.008;  # require at least perl 5.8
 
 our $Trace = 0;
 
+use version; our $VERSION = qv('2.00.99_3');
+
 sub import {
     my $self = shift;
     for (@_) {
@@ -476,9 +478,9 @@ Martin Kutter E<lt>martin.kutter fen-net.deE<gt>
 
 =head1 REPOSITORY INFORMATION
 
- $Rev: 856 $
+ $Rev: 861 $
  $LastChangedBy: kutterma $
- $Id: WSDL.pm 856 2010-03-19 21:19:44Z kutterma $
+ $Id: WSDL.pm 861 2010-03-28 10:41:26Z kutterma $
  $HeadURL: http://soap-wsdl.svn.sourceforge.net/svnroot/soap-wsdl/SOAP-WSDL/branches/Typemap/lib/SOAP/WSDL.pm $
 
 =cut
