@@ -48,10 +48,7 @@ $generator->generate();
 
 if (eval { require Test::Warn; }) {
    Test::Warn::warning_like( sub { $generator->generate_interface() },
-    [
-	qr{\A Multiple \s parts \s detected \s in \s message \s testMultiPartWarning}xms,
-	qr{\A Multiple \s parts \s detected \s in \s message \s testMultiPartWarning}xms
-	]);
+    qr{\A Multiple \s parts \s detected \s in \s message \s testMultiPartWarning}xms);
 }
 else {
     $generator->generate_interface();
@@ -110,5 +107,5 @@ my $obj = MyTypes::testComplexTypeAll->new({
 });
 like $obj->serialize(), qr{<Test-1>Test1</Test-1>}xm, 'serialize altered name with original name';
 
-#rmtree "$path/testlib";
 
+rmtree "$path/testlib";

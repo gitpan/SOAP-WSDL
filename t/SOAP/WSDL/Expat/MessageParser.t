@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 use warnings;
-use Test::More tests => 12;
+use Test::More tests => 6;
 use lib '../../../../lib';
 use lib '../../../../t/lib';
 use lib 't/lib';
@@ -13,18 +13,54 @@ use_ok(qw/SOAP::WSDL::Expat::MessageParser/);
 use MyComplexType;
 use MyElement;
 use MySimpleType;
-use MySimpleElement;
 
-test_attrs();
-test_nil();
-test_complex_element();
-test_complex_skip_element();
-test_typemap();
-test_skip_typemap();
-test_unresolved();
+my $xml = q{<SOAP-ENV:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" >
+    <SOAP-ENV:Body><MyAtomicComplexTypeElement xmlns="urn:Test" >
+    <test>Test</test>
+    <test2 >Test2</test2>
+    <foo><bar></bar><baz></baz></foo>
+    </MyAtomicComplexTypeElement></SOAP-ENV:Body></SOAP-ENV:Envelope>};
 
-test_xsi_type();
-test_simple_element();
+my $parser = SOAP::WSDL::Expat::MessageParser->new({
+    class_resolver => 'FakeResolver'
+});
+
+test_nil($parser);
+
+test_simple_element($parser);
+
+$parser->parse( $xml );
+
+
+
+is $parser->get_data(), q{<MyAtomicComplexTypeElement xmlns="urn:Test">}
+    . q{<test>Test</test><test2>Test2</test2></MyAtomicComplexTypeElement>}
+    , 'Content comparison';
+
+my $xml_attr = q{<SOAP-ENV:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" >
+    <SOAP-ENV:Body><MyElementAttrs xmlns="urn:Test" test="Test" test2="Test2">
+    <test>Test</test>
+    <test2></test2>
+    </MyElementAttrs></SOAP-ENV:Body></SOAP-ENV:Envelope>};
+
+$parser->parse($xml_attr);
+
+is $parser->get_data(),
+    q{<MyElementAttrs xmlns="urn:Test" test="Test" test2="Test2"><test>Test</test><test2></test2></MyElementAttrs>},
+    'Content with attributes';
+
+my $xml_error = q{<SOAP-ENV:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" >
+    <SOAP-ENV:Body><MyElementAttrs xmlns="urn:Test" test="Test" test2="Test2">
+    <test>Test</test>
+    <test2 ></test2>
+    <foo>Bar</foo>
+    </MyElementAttrs></SOAP-ENV:Body></SOAP-ENV:Envelope>};
+
+eval { $parser->parse($xml_error) };
+like $@, qr{\A Cannot \s resolve \s class \s for \s MyElementAttrs/foo }x, 'XML error';
 
 # data classes reside in t/lib/Typelib/
 BEGIN {
@@ -54,10 +90,7 @@ BEGIN {
 };
 
 sub test_nil {
-    my $parser = SOAP::WSDL::Expat::MessageParser->new({
-        body_parts => [ 'MyElementAttrs' ],
-    });
-
+    my $parser = shift();
     my $xml_nil_attr = q{<SOAP-ENV:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" >
     <SOAP-ENV:Body><MyElementAttrs xmlns="urn:Test">
@@ -69,186 +102,9 @@ sub test_nil {
     is $result->get_test2->serialize({ name => 'test2'}), '<test2 xsi:nil="true"/>';
 }
 
-sub test_complex_element {
-    my $xml = q{<SOAP-ENV:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" >
-        <SOAP-ENV:Body><MyAtomicComplexTypeElement xmlns="urn:Test" >
-            <test>Test</test>
-            <test2 >Test2</test2>
-        </MyAtomicComplexTypeElement>
-    </SOAP-ENV:Body></SOAP-ENV:Envelope>};
-
-    my $parser = SOAP::WSDL::Expat::MessageParser->new({
-        body_parts => [ 'MyAtomicComplexTypeElement' ],
-    });
-
-    $parser->parse( $xml );
-
-    is $parser->get_data(), q{<MyAtomicComplexTypeElement xmlns="urn:Test">}
-        . q{<test>Test</test><test2>Test2</test2></MyAtomicComplexTypeElement>}
-        , 'Content comparison';
-}
-
-sub test_complex_skip_element {
-    my $xml = q{<SOAP-ENV:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" >
-        <SOAP-ENV:Body><MyAtomicComplexTypeElement xmlns="urn:Test" >
-            <test>Test</test>
-            <test2 >Test2</test2>
-            <test3 >Test2</test3>
-        </MyAtomicComplexTypeElement>
-    </SOAP-ENV:Body></SOAP-ENV:Envelope>};
-
-    my $parser = SOAP::WSDL::Expat::MessageParser->new({
-        body_parts => [ 'MyAtomicComplexTypeElement' ],
-        strict => 0,
-    });
-
-    is $parser->{ strict }, 0;
-    $parser->parse( $xml );
-
-    is $parser->get_data(), q{<MyAtomicComplexTypeElement xmlns="urn:Test">}
-        . q{<test>Test</test><test2>Test2</test2></MyAtomicComplexTypeElement>}
-        , 'Content comparison';
-}
-
-sub test_typemap {
-    my $xml = q{<SOAP-ENV:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" >
-        <SOAP-ENV:Body><MyAtomicComplexTypeElement xmlns="urn:Test" >
-            <test>Test</test>
-            <test2 >Test2</test2>
-        </MyAtomicComplexTypeElement>
-    </SOAP-ENV:Body></SOAP-ENV:Envelope>};
-
-    my $parser = SOAP::WSDL::Expat::MessageParser->new({
-        class_resolver => 'FakeResolver',
-    });
-
-    $parser->parse( $xml );
-
-    is $parser->get_data(), q{<MyAtomicComplexTypeElement xmlns="urn:Test">}
-        . q{<test>Test</test><test2>Test2</test2></MyAtomicComplexTypeElement>}
-        , 'Content comparison';
-}
-
-sub test_skip_typemap {
-    my $xml = q{<SOAP-ENV:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" >
-        <SOAP-ENV:Body><MyAtomicComplexTypeElement xmlns="urn:Test" >
-            <test>Test</test>
-            <test2 >Test2</test2>
-            <test3 >Test2</test3>
-        </MyAtomicComplexTypeElement>
-    </SOAP-ENV:Body></SOAP-ENV:Envelope>};
-
-    my $parser = SOAP::WSDL::Expat::MessageParser->new({
-        class_resolver => 'FakeResolver',
-        strict => 0,
-    });
-
-    $parser->parse( $xml );
-
-    is $parser->get_data(), q{<MyAtomicComplexTypeElement xmlns="urn:Test">}
-        . q{<test>Test</test><test2>Test2</test2></MyAtomicComplexTypeElement>}
-        , 'Content comparison';
-}
-
-sub test_xsi_type {
-    my $xml = q{<SOAP-ENV:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
-        xmlns:tns="urn:Test" >
-        <SOAP-ENV:Body><MyAtomicComplexTypeElement xmlns="urn:Test" >
-            <test xsi:type="tns:MyFooBar">
-                <bar>1</bar>
-                <foo>2</foo>
-            </test>
-            <test2 >Test2</test2>
-        </MyAtomicComplexTypeElement>
-    </SOAP-ENV:Body></SOAP-ENV:Envelope>};
-
-    my $parser = SOAP::WSDL::Expat::MessageParser->new({
-        body_parts => [ 'MyAtomicComplexTypeElement' ],
-        prefix_resolver => SOAP::WSDL::Generator::PrefixResolver->new({
-            namespace_prefix_map => {
-                'urn:Test' => 'My',
-            }
-        }),
-    });
-
-    $parser->parse( $xml );
-
-    my $body = $parser->get_data();
-    is $body->get_test()->get_bar(), 1, 'xsi:type element value';
-    is $body->get_test()->get_foo(), 2, 'xsi:type element value';
-}
-
-sub test_xsi_type_unqualified {
-    my $xml = q{<SOAP-ENV:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
-        <SOAP-ENV:Body><MyAtomicComplexTypeElement xmlns="urn:Test" >
-            <test xsi:type="MyFooBar">
-                <bar>1</bar>
-                <foo>2</foo>
-            </test>
-            <test2 >Test2</test2>
-        </MyAtomicComplexTypeElement>
-    </SOAP-ENV:Body></SOAP-ENV:Envelope>};
-
-    my $parser = SOAP::WSDL::Expat::MessageParser->new({
-        body_parts => [ 'MyAtomicComplexTypeElement' ],
-    });
-
-    $parser->parse( $xml );
-
-    my $body = $parser->get_data();
-    is $body->get_test()->get_bar(), 1, 'xsi:type element value';
-    is $body->get_test()->get_foo(), 2, 'xsi:type element value';
-}
-
-
-sub test_attrs {
-    my $xml_attr = q{<SOAP-ENV:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" >
-        <SOAP-ENV:Body><MyElementAttrs xmlns="urn:Test" test="Test" test2="Test2">
-        <test>Test</test>
-        <test2></test2>
-        </MyElementAttrs></SOAP-ENV:Body></SOAP-ENV:Envelope>};
-
-    my $parser = SOAP::WSDL::Expat::MessageParser->new({
-        body_parts => [ 'MyElementAttrs' ],
-    });
-
-    $parser->parse($xml_attr);
-
-    is $parser->get_data(),
-        q{<MyElementAttrs xmlns="urn:Test" test="Test" test2="Test2"><test>Test</test><test2></test2></MyElementAttrs>},
-        'Content with attributes';
-
-}
-
-sub test_unresolved {
-    my $parser = SOAP::WSDL::Expat::MessageParser->new({
-            body_parts => [ 'MyElementAttrs' ],
-    });
-
-    my $xml_error = q{<SOAP-ENV:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" >
-        <SOAP-ENV:Body><MyElementAttrs xmlns="urn:Test" test="Test" test2="Test2">
-        <test>Test</test>
-        <test2 ></test2>
-        <foo>Bar</foo>
-        </MyElementAttrs></SOAP-ENV:Body></SOAP-ENV:Envelope>};
-
-    eval { $parser->parse($xml_error) };
-    like $@, qr{\A Cannot \s resolve \s class \s for \s element \s foo }x, 'XML error';
-}
-
 
 sub test_simple_element {
-    my $parser = SOAP::WSDL::Expat::MessageParser->new({
-            body_parts => [ 'MySimpleElement' ],
-    });
+    my $parser = shift;
 
     my $body = $parser->parse(
         q{<SOAP-ENV:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

@@ -6,37 +6,27 @@ sub get_xmlns { 'http://www.example.org/benchmark/'};
 
 # derivation by restriction
 use base qw(
-    SOAP::WSDL::XSD::Typelib::Builtin::string);
-
+    SOAP::WSDL::XSD::Typelib::Builtin::string
+);
 
 
 
 1;
 
-__END__
-
 =pod
 
-=head1 NAME
-
-
+=head1 MyTypes::PhoneNumber
 
 =head1 DESCRIPTION
 
 Perl data type class for the XML Schema defined simpleType
 PhoneNumber from the namespace http://www.example.org/benchmark/.
 
-
-
-
-
-This clase is derived from 
-   SOAP::WSDL::XSD::Typelib::Builtin::string
+This clase is derived from SOAP::WSDL::XSD::Typelib::Builtin::string
 . SOAP::WSDL's schema implementation does not validate data, so you can use it exactly
 like it's base type.
 
 # Description of restrictions not implemented yet.
-
 
 =head1 METHODS
 

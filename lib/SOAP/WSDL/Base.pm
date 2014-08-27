@@ -1,12 +1,11 @@
 package SOAP::WSDL::Base;
-use SOAP::WSDL;
 use strict; use warnings;
 use Class::Std::Fast::Storable;
 use List::Util;
 use Scalar::Util;
 use Carp qw(croak carp confess);
 
-use version; our $VERSION = qv('2.00.99_3');
+use version; our $VERSION = qv('3.00.0_1');
 
 my %id_of               :ATTR(:name<id> :default<()>);
 my %lang_of             :ATTR(:name<lang> :default<()>);
@@ -114,15 +113,11 @@ sub AUTOMETHOD {
 
 sub init {
     my ($self, @args) = @_;
-    print "Creating new node" . ident($self) . "\n" if $SOAP::WSDL::Trace;
     foreach my $value (@args) {
         croak @args if (not defined ($value->{ Name }));
 
-        print "\tAttribute $value->{ Name } = $value->{ Value }\n" if $SOAP::WSDL::Trace;
-
         if ($value->{ Name } =~m{^xmlns\:}xms) {
             # add namespaces
-            print "\tbind prefix $value->{ LocalName } to $value->{ Value }\n" if $SOAP::WSDL::Trace;
             $xmlns_of{ ident $self }->{ $value->{ LocalName } } = $value->{ Value };
             next;
         }
@@ -140,15 +135,13 @@ sub init {
         my $method = "set_$name";
         $self->$method( $value->{ Value } );
     }
-    
     return $self;
 }
 
 sub expand {
     my ($self, $qname) = @_;
-    my $ns_of = $xmlns_of{ ident $self };
+    my $ns_of = $self->namespaces();
     my $parent;
-    print "Resolving name for $qname in ", $self, " (", ident($self), ")\n" if $SOAP::WSDL::Trace;
     if (not $qname=~m{:}xm) {
         if (defined $ns_of->{ '#default' }) {
             # TODO check. Returning the targetNamespace for the default ns
@@ -163,6 +156,7 @@ sub expand {
     }
 
     my ($prefix, $localname) = split /:/x, $qname;
+
     return ($ns_of->{ $prefix }, $localname) if ($ns_of->{ $prefix });
     if ($parent = $self->get_parent()) {
         return $parent->expand($qname);

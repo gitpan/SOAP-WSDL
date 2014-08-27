@@ -5,7 +5,7 @@ use Class::Std::Fast::Storable;
 use Scalar::Util qw(blessed);
 use base qw(SOAP::WSDL::Base);
 
-use version; our $VERSION = qv('2.00.99_3');
+use version; our $VERSION = qv('3.00.0_1');
 
 # id provided by Base
 # name provided by Base
@@ -98,9 +98,18 @@ sub serialize {
     if ( $opt->{ autotype }) {
         my $ns = $self->get_targetNamespace();
         # reverse namespace by prefix hash
-        my %prefix_of = reverse %{ $opt->{ namespace } };
-        my $prefix = $prefix_of{ $ns }
-            || die 'No prefix found for namespace '. $ns;
+
+        # build a list of hash keys (eg '#default', 'tns') whose values match our namespace (eg 'urn:myNamespace')
+        (my @possible_namespace_names) = grep { $opt->{ namespace }->{$_} eq $ns } keys %{ $opt->{ namespace } };
+
+        # put any '#default' option last
+        @possible_namespace_names = sort { $a eq '#default' ? 1 : $b eq '#default' ? -1 : $a cmp $b } @possible_namespace_names;
+
+        if( grep( $_ ne '#default', @possible_namespace_names ) > 1 or ! @possible_namespace_names ) {
+            die "No prefix found for namespace $ns, or too many possible names: ``@possible_namespace_names''; there should be just one and maybe a '#default' entry";
+        }
+        my $prefix = $possible_namespace_names[0];
+
         $xml .= join q{}, " type=\"$prefix:", $self->get_name(), '" '
             if ($self->get_name() );
     }

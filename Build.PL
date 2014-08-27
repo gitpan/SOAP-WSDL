@@ -1,3 +1,4 @@
+use lib 'inc';  # local copy of Module::Build
 use Module::Build;
 use version;
 $build = Module::Build->new(
@@ -5,15 +6,15 @@ $build = Module::Build->new(
     create_makefile_pl => 'small',
     dist_abstract      => 'SOAP with WSDL support',
     dist_name          => 'SOAP-WSDL',
-    dist_version       => '2.00.99_3',
+    dist_version       => '3.00.0_1',
     module_name        => 'SOAP::WSDL',
     license            => 'artistic',
     requires           => {
         # 5.6.x is way too buggy and has no unicode support
         # for us. SOAP-WSDL relies on unicode (WS-I demands it)
         # and triggers several 5.6 bugs...
-        'perl'                    => q(5.8.0),
-        'Class::Std::Fast'        => q(0.0.5),
+        'perl'                    => q(5.008),
+        'Class::Std::Fast'        => q(0.000005),
         'Data::Dumper'            => 0,
         'Date::Parse'             => 0,
         'Date::Format'            => 0,
@@ -28,7 +29,7 @@ $build = Module::Build->new(
         'XML::Parser::Expat'      => 0,
     },
     build_requires => {
-        'Class::Std::Fast'        => q(0.0.5),
+        'Class::Std::Fast'        => q(0.000005),
         'Cwd'                     => 0,
         'Date::Parse'             => 0,
         'Date::Format'            => 0,

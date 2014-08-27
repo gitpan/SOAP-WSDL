@@ -4,23 +4,20 @@ use warnings;
 use Carp qw(confess);
 use Class::Std::Fast::Storable constructor => 'none';
 use Scalar::Util qw(blessed);
-use version; our $VERSION = qv('2.00.99_3');
+use version; our $VERSION = qv('3.00.0_1');
 
 my %namespace_prefix_map_of :ATTR(:name<namespace_prefix_map>   :default<{}>);
 my %namespace_map_of        :ATTR(:name<namespace_map>          :default<{}>);
 my %prefix_of               :ATTR(:name<prefix>                 :default<()>);
 my %prefix_resolver_of      :ATTR(:name<prefix_resolver>        :default<()>);
-
-my %prefix_resolver_class_of    :ATTR(:name<prefix_resolver_class>  :default<()>);
-
 my %definitions_of          :ATTR(:name<definitions>            :default<()>);
+
 
 # create a singleton
 sub load {              # called as MyPlugin->load($context)
     my ($class, $context, @arg_from) = @_;
     my $stash = $context->stash();
     my $self = bless \do { my $o = Class::Std::Fast::ID() }, $class;
-    $self->set_prefix_resolver_class( $stash->{ context }->{ prefix_resolver_class });
     $self->set_prefix_resolver( $stash->{ context }->{ prefix_resolver });
     $self->set_definitions( $stash->{ definitions });
     return $self;       # returns 'MyPlugin'
@@ -169,14 +166,9 @@ sub element_name {
     my $name = $element->get_name();
     if (! $name) {
         while (my $ref = $element->get_ref()) {
-			# print "looking for: {", join('}', $element->expand( $ref )), "\n";
             $element = $self->get_definitions()->first_types()
                 ->find_element($element->expand( $ref ) );
-			# print $self->get_definitions()->first_types()->_DUMP;
-			# for (@{$self->get_definitions()->first_types()->get_schema}) {
-			#	print $_->_DUMP;
-			# }
-			$name = $element->get_name();
+            $name = $element->get_name();
             last if ($name);
         }
     }

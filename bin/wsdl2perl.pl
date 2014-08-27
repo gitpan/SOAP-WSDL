@@ -3,9 +3,10 @@ use strict;
 use warnings;
 use Pod::Usage;
 use Getopt::Long;
+use LWP::UserAgent;
+use SOAP::WSDL::Expat::WSDLParser;
+use SOAP::WSDL::Factory::Generator;
 use Term::ReadKey;
-use SOAP::WSDL::Build;
-use SOAP::WSDL;
 
 my %opt = (
   url => '',
@@ -20,11 +21,7 @@ my %opt = (
   proxy => undef,
   generator => 'XSD',
   server => 0,
-  client => 1,
-  namespaces => 0,
-  use_typemap => 0,
-  verbose => 0,
-  xmltypes = 1,
+  namespace => 0,
 );
 
 {   # a block just to scope "no warnings"
@@ -72,9 +69,6 @@ GetOptions(\%opt,
     generator=s
     server|s
     namespaces|n
-    use_typemap
-    verbose
-    xmltypes
   )
 );
 
@@ -83,11 +77,77 @@ my $url = $ARGV[0];
 pod2usage( -exit => 1 , verbose => 2 ) if ($opt{help});
 pod2usage( -exit => 1 , verbose => 1 ) if not ($url);
 
-$opt{client} = 0 if $opt{server};
-$opt{location} = $url;
-$SOAP::WSDL::Trace = $opt{verbose};
-SOAP::WSDL::Build->wsdl2perl(types => delete $opt{xmltypes}, %opt);
+local $ENV{HTTP_PROXY} = $opt{proxy} if $opt{proxy};
+local $ENV{HTTPS_PROXY} = $opt{proxy} if $opt{proxy};
 
+my $lwp = LWP::UserAgent->new(
+    $opt{keep_alive}
+        ? ( keep_alive => 1 )
+        : ()
+    );
+$lwp->env_proxy();  # get proxy from environment. Works for both http & https.
+$lwp->agent(qq[SOAP::WSDL $SOAP::WSDL::Expat::WSDLParser::VERSION]);
+
+my $parser = SOAP::WSDL::Expat::WSDLParser->new({
+    user_agent => $lwp,
+});
+
+# resolve the default prefix options
+map {
+    my $opt_key = $_;
+    if ( $opt_key =~ / (\w+) _prefix $/xms # relevant option
+            && !$opt{ $opt_key }           # that hasn't already been explicitly set
+        )
+    {
+        my $prefix_type = $1;
+        $opt{ $opt_key } = $opt{prefix} .                           # My
+                           ucfirst( $prefix_type ) .                # Typemap
+                           ( $prefix_type eq 'server' ? '' : 's' ); # s
+    }
+} keys %opt;
+
+my $definitions = $parser->parse_uri( $url );
+
+my %typemap = ();
+
+if ($opt{typemap_include}) {
+  die "$opt{typemap_include} not found " if not -f $opt{typemap_include};
+  %typemap = do $opt{typemap_include};
+}
+
+my $generator = SOAP::WSDL::Factory::Generator->get_generator({ type => $opt{'generator'} });
+
+if (%typemap) {
+    if ($generator->can('set_typemap')) {
+        $generator->set_typemap( \%typemap );
+    }
+    else {
+        warn "Typemap snippet given, but generator does not support it\n";
+    }
+};
+
+$generator->set_attribute_prefix( $opt{ attribute_prefix })
+    if $generator->can('set_attribute_prefix');
+$generator->set_type_prefix( $opt{ type_prefix })
+    if $generator->can('set_type_prefix');
+$generator->set_typemap_prefix( $opt{ typemap_prefix })
+    if $generator->can('set_typemap_prefix');
+$generator->set_element_prefix($opt{ element_prefix })
+    if $generator->can('set_element_prefix');
+$generator->set_interface_prefix($opt{ interface_prefix })
+    if $generator->can('set_interface_prefix');
+$generator->set_server_prefix($opt{ server_prefix })
+    if $generator->can('set_server_prefix');
+$generator->set_OUTPUT_PATH($opt{ base_path })
+    if $generator->can('set_OUTPUT_PATH');
+$generator->set_definitions($definitions)
+    if $generator->can('set_definitions');
+# $generator->set_wsdl($xml) if $generator->can('set_wsdl');
+
+# start with typelib, as errors will most likely occur here...
+$generator->generate();
+$generator->generate_interface() if ! $opt{server};
+$generator->generate_server() if $opt{server};
 __END__
 
 =pod
@@ -98,8 +158,6 @@ wsdl2perl.pl - create perl bindings for SOAP webservices.
 
 =head1 SYNOPSIS
 
- wsdl2perl.pl -p PREFIX FILENAME
-
  wsdl2perl.pl -t TYPE_PREFIX -e ELEMENT_PREFIX -m TYPEMAP_PREFIX \
    -i INTERFACE_PREFIX -b BASE_DIR URL
 
@@ -109,7 +167,7 @@ wsdl2perl.pl - create perl bindings for SOAP webservices.
  ----------------------------------------------------------------------------
  prefix            p   Prefix for all generated classes. If you set "-p=Foo",
                        you will get "FooAttributes", "FooTypes",
-                       "FooElements" and so on.
+					   "FooElements" and so on.
  attribute_prefix  a   Prefix for XML attribute classes.
                        Default: MyAttributes
  type_prefix       t   Prefix for type classes.
@@ -191,12 +249,12 @@ You need Crypt::SSLeay installed for accessing HTTPS URLs.
 Use the -u option for specifying the user name. You will be prompted for a
 password.
 
-Alternatively, you may specify a password with --password on the command
+Alternatively, you may specify a passowrd with --password on the command
 line.
 
 =head2 Accessing documents protected by NTLM authentication
 
-Set the --keep_alive option, and use --user.
+Set the --keep_alive option.
 
 Note that accessing documents protected by NTLM authentication is currently
 untested, because I have no access to a system using NTLM authentication.

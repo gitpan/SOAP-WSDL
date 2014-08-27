@@ -1,8 +1,8 @@
-use Test::More tests => 60;
+use Test::More tests => 70;
 use File::Basename qw(dirname);
 use File::Spec;
 use File::Path;
-use SOAP::WSDL::Expat::MessageParser;
+use diagnostics;
 my $path = File::Spec->rel2abs( dirname __FILE__ );
 
 use_ok qw(SOAP::WSDL::Generator::Template::XSD);
@@ -22,16 +22,13 @@ my $parser = SOAP::WSDL::Expat::WSDLParser->new();
 #
 
 my $definitions;
-if ( eval 'use Test::Warn; 1;' ) {
-    Test::Warn::warning_like(
-        sub {
-            $definitions = $parser->parse_file(
-                "$path/../../../acceptance/wsdl/generator_test.wsdl"
-            );
-        },
-        qr{\Afound \s unrecognised \s attribute \s {http://foo.bar}Action \s \(ignored\)}xms,
-        'warning on unrecognized attribute',
-    );
+if (eval "require Test::Warn; 1") {
+    Test::Warn::warning_is( sub {
+        $definitions = $parser->parse_file(
+            "$path/../../../acceptance/wsdl/generator_test.wsdl"
+        );
+    }, 'found unrecognised attribute {http://foo.bar}Action (ignored)'
+    , 'warning on unrecognized attribute');
 }
 else {
     SKIP: {
@@ -69,13 +66,12 @@ $generator->set_interface_prefix('MyInterfaces');
 
 $generator->set_output(undef);
 $generator->generate();
+#$generator->generate_typelib();
+#$generator->generate_typemap();
 
 if (eval { require Test::Warn; }) {
-   Test::Warn::warnings_like( sub { $generator->generate_interface() },
-    [
-        qr{\A Multiple \s parts \s detected \s in \s message \s testMultiPartWarning}xms,
-        qr{\A Multiple \s parts \s detected \s in \s message \s testMultiPartWarning}xms
-    ]);
+   Test::Warn::warning_like( sub { $generator->generate_interface() },
+    qr{\A Multiple \s parts \s detected \s in \s message \s testMultiPartWarning}xms);
 }
 else {
     $generator->generate_interface();
@@ -91,33 +87,25 @@ my $interface;
 
 ok $interface = MyInterfaces::testService::testPort->new(), 'instanciate interface';
 $interface->set_no_dispatch(1);
-$interface->outputxml(1);
 
 my $message;
 
-ok $message = $interface->testHeader(
-    { Test1 => 'Test1', Test2 => 'Test2'},
-    { Test1 => 'Header1', Test2 => 'Header2'},
-), 'call soap method (no_dispatch)';
+ok $message = $interface->testHeader( { Test1 => 'Test1', Test2 => 'Test2'}
+    , { Test1 => 'Header1', Test2 => 'Header2'}), 'call soap method (no_dispatch)';
 
-# print $message;
-# __END__
-# use_ok qw(SOAP::WSDL::Expat::MessageParser);
-# use_ok qw(MyTypemaps::testService);
+use_ok qw(SOAP::WSDL::Expat::MessageParser);
+use_ok qw(MyTypemaps::testService);
 
 $parser = SOAP::WSDL::Expat::MessageParser->new({
-    body_parts      => [ 'MyElements::testHeader' ],
-    header_parts    => [ 'MyElements::Header' ],
+    class_resolver => 'MyTypemaps::testService'
 });
 
 ok $parser->parse_string($message), 'parse message with header';
-ok $parser->get_header()->get_Test1(), 'Header1';
-ok $message = $interface->testChoice( { Test1 => 'Test1' }  ), 'call soap method (no_dispatch)';
+ok $parser->get_header()->get_Test1(), 'Header1';ok $message = $interface->testChoice( { Test1 => 'Test1' }  ), 'call soap method (no_dispatch)';
 ok $parser->get_header()->get_Test2(), 'Header2';
 
 ok $parser->get_data()->get_Test1(), 'Test1';
 ok $parser->get_data()->get_Test2(), 'Test2';
-
 
 use_ok qw(SOAP::WSDL::Transport::Loopback);
 
@@ -127,9 +115,8 @@ $interface->set_proxy('http://127.0.0.1/Test');
 
 for (1..2) {
     my ($body, $header) = $interface->testHeader( { Test1 => 'Test1', Test2 => 'Test2'} , { Test1 => 'Header1', Test2 => 'Header2'});
-# warn $body, $header;
-#    is $header->get_Test1(), 'Header1', 'Header content';
-#    is $header->get_Test2(), 'Header2', 'Header content';
+    is $header->get_Test1(), 'Header1', 'Header content';
+    is $header->get_Test2(), 'Header2', 'Header content';
 }
 
 # complexType choice test
@@ -241,7 +228,7 @@ is q{<testAtomicRef xmlns="urn:Test"><in>foo</in></testAtomicRef>}
 
 SKIP: {
     eval { require Test::Pod::Content; }
-        or skip 'Cannot test pod content without Test::Pod::Content', 3;
+        or skip 'Cannot test pod content without Test::Pod::Content', 2;
     Test::Pod::Content::pod_section_like(
         'MyTypes::testComplexTypeSequenceWithAttribute',
         'attr',
@@ -253,12 +240,6 @@ SKIP: {
         'testChoice',
         qr{Returns \s a \s MyElements::testComplexTypeRestriction \s object\.}x,
         'Interface POD contains response class name');
-
-    Test::Pod::Content::pod_section_like(
-        'MyElements::testElementAtomicComplexTypeAll',
-        'PROPERTIES',
-        qr{\$element->set_test1\(\$data\);}x,
-        'Included element accessor pod');
 }
 
 use_ok qw(MyTypes::finalComplexType);
@@ -267,5 +248,11 @@ use_ok qw(MyTypes::finalComplexType);
     ok *MyTypes::finalComplexType::get_Name, 'complexType inheritance flattened out';
 }
 
+ok $typemap = MyTypemaps::testService->get_typemap();
 
-#rmtree "$path/testlib";
+ok $typemap->{'testElementNestedExtension/Test1'};
+ok $typemap->{'testElementNestedExtension/Test2'};
+ok $typemap->{'testElementNestedExtension/Test3'};
+ok $typemap->{'testElementNestedExtension/Test4'};
+
+rmtree "$path/testlib";

@@ -1,15 +1,6 @@
 package MyTypes::Contract;
 use strict;
 use warnings;
-
-
-our $XML_ATTRIBUTE_CLASS;
-undef $XML_ATTRIBUTE_CLASS;
-
-sub __get_attr_class {
-    return $XML_ATTRIBUTE_CLASS;
-}
-
 use Class::Std::Fast::Storable constructor => 'none';
 use base qw(SOAP::WSDL::XSD::Typelib::ComplexType);
 
@@ -21,22 +12,17 @@ my %ContractID_of :ATTR(:get<ContractID>);
 my %ContractName_of :ATTR(:get<ContractName>);
 
 __PACKAGE__->_factory(
-    [ qw(        ContractID
+    [ qw(
+        ContractID
         ContractName
-
     ) ],
     {
-        'ContractID' => \%ContractID_of,
-        'ContractName' => \%ContractName_of,
+        ContractID => \%ContractID_of,
+        ContractName => \%ContractName_of,
     },
     {
-        'ContractID' => 'SOAP::WSDL::XSD::Typelib::Builtin::long',
-        'ContractName' => 'SOAP::WSDL::XSD::Typelib::Builtin::string',
-    },
-    {
-
-        'ContractID' => 'ContractID',
-        'ContractName' => 'ContractName',
+        ContractID => 'SOAP::WSDL::XSD::Typelib::Builtin::long',
+        ContractName => 'SOAP::WSDL::XSD::Typelib::Builtin::string',
     }
 );
 
@@ -47,9 +33,7 @@ __PACKAGE__->_factory(
 
 
 
-
 1;
-
 
 =pod
 
@@ -59,30 +43,16 @@ MyTypes::Contract
 
 =head1 DESCRIPTION
 
-Perl data type class for the XML Schema defined complexType
+Perl data type class for the XML Schema defined complextype
 Contract from the namespace http://www.example.org/benchmark/.
-
-
-
-
-
 
 =head2 PROPERTIES
 
 The following properties may be accessed using get_PROPERTY / set_PROPERTY
 methods:
 
-=over
-
-=item * ContractID
-
-
-=item * ContractName
-
-
-
-
-=back
+ ContractID
+ ContractName
 
 
 =head1 METHODS
@@ -95,9 +65,6 @@ Constructor. The following data structure may be passed to new():
    ContractID =>  $some_value, # long
    ContractName =>  $some_value, # string
  },
-
-
-
 
 =head1 AUTHOR
 

@@ -5,13 +5,12 @@ use lib '../lib';
 use base q{CodeFirst};
 
 sub test :WebMethod(
-		action => "uri:test",
-		request_header => "bar",
-		request_body => "bam",
-		response_header => "baz",
-		response_body =>"bla"
+		name => "sayHello",
+		action => "uri:helloWorld/sayHello",
+		request_body => "CodeFirst::HelloRequest",
+		response_body => "CodeFirst::HelloResponse"
 	) {
-    my testCodeFirst $self = shift;
+
 	# return either [ \%body, \%header ]
 	# or \%body
 	# or [ Body->new(), Header->new ]
@@ -43,11 +42,11 @@ sub test :WebMethod(
 =pod
 
 sub test2 :WebMethod(
-		action => "uri:test2",
-        request_header => "bar",
-        request_body => "bam",
-        response_header => "baz",
-        response_body =>"bla"
+		action => "test2",
+		request_header => "bar",
+		reqest_body => "bam",
+		response_header => "bam",
+		response_body => "baz"
 	) {
 }
 
@@ -87,4 +86,4 @@ print Dumper $deserializer->deserialize($xml, 'CodeFirst::HelloRequest');
 
 
 
-1;==== ORIGINAL VERSION branches/Typemap/t/CodeFirst/test.pl 124242244811691
+1;

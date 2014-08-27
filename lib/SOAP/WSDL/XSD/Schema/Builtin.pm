@@ -6,7 +6,7 @@ use SOAP::WSDL::XSD::Schema;
 use SOAP::WSDL::XSD::Builtin;
 use base qw(SOAP::WSDL::XSD::Schema);
 
-use version; our $VERSION = qv('2.00.99_3');
+use version; our $VERSION = qv('3.00.0_1');
 
 # all builtin types - add validation (e.g. content restrictions) later...
 my %BUILTINS = (
@@ -66,12 +66,11 @@ sub START {
                 name => $name,
                 targetNamespace => 'http://www.w3.org/2001/XMLSchema',
                 xmlns => {
-                    '#default' => 'http://www.w3.org/2001/XMLSchema',
+                	'#default' => 'http://www.w3.org/2001/XMLSchema',
                 }
             } )
         );
     }
-    $self->set_targetNamespace('http://www.w3.org/2001/XMLSchema');
     return $self;
 }
 
@@ -104,10 +103,10 @@ Martin Kutter E<lt>martin.kutter fen-net.deE<gt>
 
 =head1 REPOSITORY INFORMATION
 
- $Rev: 861 $
+ $Rev: 851 $
  $LastChangedBy: kutterma $
- $Id: Builtin.pm 861 2010-03-28 10:41:26Z kutterma $
- $HeadURL: http://soap-wsdl.svn.sourceforge.net/svnroot/soap-wsdl/SOAP-WSDL/branches/Typemap/lib/SOAP/WSDL/XSD/Schema/Builtin.pm $
+ $Id: Builtin.pm 851 2009-05-15 22:45:18Z kutterma $
+ $HeadURL: https://soap-wsdl.svn.sourceforge.net/svnroot/soap-wsdl/SOAP-WSDL/trunk/lib/SOAP/WSDL/XSD/Schema/Builtin.pm $
 
 =cut
 

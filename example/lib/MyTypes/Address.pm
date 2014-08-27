@@ -1,15 +1,6 @@
 package MyTypes::Address;
 use strict;
 use warnings;
-
-
-our $XML_ATTRIBUTE_CLASS;
-undef $XML_ATTRIBUTE_CLASS;
-
-sub __get_attr_class {
-    return $XML_ATTRIBUTE_CLASS;
-}
-
 use Class::Std::Fast::Storable constructor => 'none';
 use base qw(SOAP::WSDL::XSD::Typelib::ComplexType);
 
@@ -25,38 +16,29 @@ my %PhoneNumber_of :ATTR(:get<PhoneNumber>);
 my %MobilePhoneNumber_of :ATTR(:get<MobilePhoneNumber>);
 
 __PACKAGE__->_factory(
-    [ qw(        Street
+    [ qw(
+        Street
         ZIP
         City
         Country
         PhoneNumber
         MobilePhoneNumber
-
     ) ],
     {
-        'Street' => \%Street_of,
-        'ZIP' => \%ZIP_of,
-        'City' => \%City_of,
-        'Country' => \%Country_of,
-        'PhoneNumber' => \%PhoneNumber_of,
-        'MobilePhoneNumber' => \%MobilePhoneNumber_of,
+        Street => \%Street_of,
+        ZIP => \%ZIP_of,
+        City => \%City_of,
+        Country => \%Country_of,
+        PhoneNumber => \%PhoneNumber_of,
+        MobilePhoneNumber => \%MobilePhoneNumber_of,
     },
     {
-        'Street' => 'SOAP::WSDL::XSD::Typelib::Builtin::string',
-        'ZIP' => 'SOAP::WSDL::XSD::Typelib::Builtin::string',
-        'City' => 'SOAP::WSDL::XSD::Typelib::Builtin::string',
-        'Country' => 'SOAP::WSDL::XSD::Typelib::Builtin::string',
-        'PhoneNumber' => 'MyTypes::PhoneNumber',
-        'MobilePhoneNumber' => 'MyTypes::PhoneNumber',
-    },
-    {
-
-        'Street' => 'Street',
-        'ZIP' => 'ZIP',
-        'City' => 'City',
-        'Country' => 'Country',
-        'PhoneNumber' => 'PhoneNumber',
-        'MobilePhoneNumber' => 'MobilePhoneNumber',
+        Street => 'SOAP::WSDL::XSD::Typelib::Builtin::string',
+        ZIP => 'SOAP::WSDL::XSD::Typelib::Builtin::string',
+        City => 'SOAP::WSDL::XSD::Typelib::Builtin::string',
+        Country => 'SOAP::WSDL::XSD::Typelib::Builtin::string',
+        PhoneNumber => 'MyTypes::PhoneNumber',
+        MobilePhoneNumber => 'MyTypes::PhoneNumber',
     }
 );
 
@@ -67,9 +49,7 @@ __PACKAGE__->_factory(
 
 
 
-
 1;
-
 
 =pod
 
@@ -79,42 +59,20 @@ MyTypes::Address
 
 =head1 DESCRIPTION
 
-Perl data type class for the XML Schema defined complexType
+Perl data type class for the XML Schema defined complextype
 Address from the namespace http://www.example.org/benchmark/.
-
-
-
-
-
 
 =head2 PROPERTIES
 
 The following properties may be accessed using get_PROPERTY / set_PROPERTY
 methods:
 
-=over
-
-=item * Street
-
-
-=item * ZIP
-
-
-=item * City
-
-
-=item * Country
-
-
-=item * PhoneNumber
-
-
-=item * MobilePhoneNumber
-
-
-
-
-=back
+ Street
+ ZIP
+ City
+ Country
+ PhoneNumber
+ MobilePhoneNumber
 
 
 =head1 METHODS
@@ -131,9 +89,6 @@ Constructor. The following data structure may be passed to new():
    PhoneNumber => $some_value, # PhoneNumber
    MobilePhoneNumber => $some_value, # PhoneNumber
  },
-
-
-
 
 =head1 AUTHOR
 

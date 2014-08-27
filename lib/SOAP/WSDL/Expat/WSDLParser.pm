@@ -5,7 +5,7 @@ use Carp;
 use SOAP::WSDL::TypeLookup;
 use base qw(SOAP::WSDL::Expat::Base);
 
-use version; our $VERSION = qv('2.00.99_3');
+use version; our $VERSION = qv('3.00.0_1');
 
 #
 # Import child elements of a WSDL / XML Schema tree into the current tree
@@ -186,8 +186,7 @@ sub _initialize {
                         parent    => $current,
                         namespace => $parser->namespace($localname),
                         defined($current)
-                        # make a copy of xmlns - don't let it be changed
-                        ? ( xmlns => { %{ $current->get_xmlns() } } )
+                        ? ( xmlns => $current->get_xmlns() )
                         : ()} )->init( _fixup_attrs( $parser, @attrs ) );
 
                 if ($current) {
@@ -368,11 +367,11 @@ the same terms as perl itself
 
 =head1 Repository information
 
- $Id: WSDLParser.pm 861 2010-03-28 10:41:26Z kutterma $
+ $Id: WSDLParser.pm 851 2009-05-15 22:45:18Z kutterma $
 
- $LastChangedDate: 2010-03-28 12:41:26 +0200 (So, 28. Mär 2010) $
- $LastChangedRevision: 861 $
+ $LastChangedDate: 2009-05-16 00:45:18 +0200 (Sa, 16. Mai 2009) $
+ $LastChangedRevision: 851 $
  $LastChangedBy: kutterma $
 
- $HeadURL: http://soap-wsdl.svn.sourceforge.net/svnroot/soap-wsdl/SOAP-WSDL/branches/Typemap/lib/SOAP/WSDL/Expat/WSDLParser.pm $
+ $HeadURL: https://soap-wsdl.svn.sourceforge.net/svnroot/soap-wsdl/SOAP-WSDL/trunk/lib/SOAP/WSDL/Expat/WSDLParser.pm $
 

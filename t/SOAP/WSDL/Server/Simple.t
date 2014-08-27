@@ -40,7 +40,7 @@ sub test_fault_output {
 
             $server->handle( CGI->new() );
         }
-        like $output, qr{No \s handler}xms;
+        like $output, qr{no \s element \s found}xms;
 
     }
 }
@@ -53,8 +53,6 @@ sub test_deserializer_fault {
 
     local $ENV{REQUEST_METHOD}  = 'POST';
     local $ENV{HTTP_SOAPACTION} = 'testaction';
-
-    $server->set_dispatch_to('main');
 
     $server->handle(
         CGI->new( {

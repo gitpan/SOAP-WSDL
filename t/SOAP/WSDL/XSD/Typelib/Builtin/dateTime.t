@@ -6,9 +6,8 @@ use Date::Parse;
 use Date::Format;
 
 sub timezone {
-    # strptime sets empty values to undef - and strftime doesn't like that...
-    # strptime doesn't like map iterators so we create an anon array
-    my $tz = strftime('%z', @{[map { defined $_ ? $_ : 0 } strptime shift]} );
+    my @time = strptime shift;
+    my $tz = strftime('%z', @time);
     substr $tz, -2, 0, ':';
     return $tz;
 }
@@ -20,14 +19,15 @@ my $obj;
 my %dates = (
     '2007-12-31 12:32' => '2007-12-31T12:32:00',
     '2007-08-31 00:32' => '2007-08-31T00:32:00',
-    '30 Aug 2007'      => '2007-08-30T00:00:00',
+    '30 Aug 2007' => '2007-08-30T00:00:00',
 );
 
 $obj = SOAP::WSDL::XSD::Typelib::Builtin::dateTime->new();
 $obj = SOAP::WSDL::XSD::Typelib::Builtin::dateTime->new({});
 $obj = SOAP::WSDL::XSD::Typelib::Builtin::dateTime->new({ value => '2007-08-31T00:32:00' });
 
-while ( my ($date, $converted) = each %dates ) {
+while (my ($date, $converted) = each %dates ) {
+
     $obj = SOAP::WSDL::XSD::Typelib::Builtin::dateTime->new();
     $obj->set_value( $date );
 

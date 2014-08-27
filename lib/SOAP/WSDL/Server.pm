@@ -6,83 +6,35 @@ use Scalar::Util qw(blessed);
 use SOAP::WSDL::Factory::Deserializer;
 use SOAP::WSDL::Factory::Serializer;
 
-use version; our $VERSION = qv('2.00.99_3');
+use version; our $VERSION = qv('3.00.0_1');
 
-my %dispatch_to_of      :ATTR(:name<dispatch_to>    :default<()>);
+my %dispatch_to_of      :ATTR(:name<dispatch_to> :default<()>);
 my %action_map_ref_of   :ATTR(:name<action_map_ref> :default<{}>);
-my %method_map_ref_of   :ATTR(:name<method_map_ref> :default<{}>);
 my %class_resolver_of   :ATTR(:name<class_resolver> :default<()>);
 my %deserializer_of     :ATTR(:name<deserializer>   :default<()>);
-my %serializer_of       :ATTR(:name<serializer>     :default<()>);
-my %soap_version_of     :ATTR(:name<soap_veraion>   :default<1.1>);
+my %serializer_of       :ATTR(:name<serializer>   :default<()>);
 
 sub handle {
-    my $self    = shift;
-    my $request = shift; # this involves copying the request... once
-    my $ident   = ident $self;
-
+    my $self = shift;
+    my $ident = ident $self;
+    # this involves copying the request...
+    my $request = shift;                                                # once
 
     # we only support 1.1 now...
     $deserializer_of{ $ident } ||= SOAP::WSDL::Factory::Deserializer->get_deserializer({
-        soap_version => $soap_version_of{ $ident },
+        soap_version => '1.1'
     });
     $serializer_of{ $ident } ||= SOAP::WSDL::Factory::Serializer->get_serializer({
-        soap_version => $soap_version_of{ $ident },
+        soap_version => '1.1'
     });
 
-    # lookup method name by SOAPAction
-    # TODO: factor out dispatcher logic into dispatcher factory + dispatcher
-    # classes
-    #    $dispatcher_of{ $ident } ||= SOAP::WSDL::Factory::Dispatcher->get_dispatcher({});
+# TODO: factor out dispatcher logic into dispatcher factory + dispatcher
+# classes
+#    $dispatcher_of{ $ident } ||= SOAP::WSDL::Factory::Dispatcher->get_dispatcher({});
 
-    my $soap_action = $request->header('SOAPAction');
-    $soap_action = '' if ! defined $soap_action;
-    $soap_action =~s{ \A(?:"|')(.+)(?:"|') \z }{$1}xms;
-    my $method_name = $action_map_ref_of{ $ident }->{ $soap_action };
-
-    if ( ! $dispatch_to_of{ $ident } ) {
-        die $deserializer_of{ $ident }->generate_fault({
-                code => 'SOAP-ENV:Server',
-                role => 'urn:localhost',
-                message => "No handler registered",
-            });
-    };
-
-    if ( ! defined $request->header('SOAPAction') ) {
-        die $deserializer_of{ $ident }->generate_fault({
-                code => 'SOAP-ENV:Server',
-                role => 'urn:localhost',
-                message => "Not found: No SOAPAction given",
-            });
-    };
-
-    if ( ! defined $method_name) {
-        die $deserializer_of{ $ident }->generate_fault({
-                code => 'SOAP-ENV:Server',
-                role => 'urn:localhost',
-                message => "Not found: No method found for the SOAPAction '$soap_action'",
-            });
-    };
-
-    # initialize deserializer from caller
-    if ( $method_map_ref_of{$ident} && $deserializer_of{ $ident }->can('init_from_caller') ) {
-        $deserializer_of{ $ident }->init_from_caller(
-            $self, $method_map_ref_of{ $ident }->{ $method_name }
-        );
-    }
-    else {
-        # for compatibility only
-        $deserializer_of{ $ident }->set_class_resolver( $class_resolver_of{ $ident } )
-            if ( $deserializer_of{ $ident }->can('set_class_resolver') );
-
-        $deserializer_of{ $ident }->set_body_parts(
-            $method_map_ref_of{ $ident }->{ $method_name }->{ body }->{ parts }
-        ) if ( $deserializer_of{ $ident }->can('set_body_parts') );
-
-        $deserializer_of{ $ident }->set_header_parts(
-            $method_map_ref_of{ $ident }->{ $method_name }->{ header }->{ parts }
-        ) if ( $deserializer_of{ $ident }->can('set_header_parts') );
-    }
+    # set class resolver if deserializer supports it
+    $deserializer_of{ $ident }->set_class_resolver( $class_resolver_of{ $ident } )
+        if ( $deserializer_of{ $ident }->can('set_class_resolver') );
 
     # Try deserializing response
     my ($body, $header) = eval {
@@ -90,14 +42,20 @@ sub handle {
     };
     if ($@) {
         die $deserializer_of{ $ident }->generate_fault({
-                code => 'soap:Server',
+                code => 'SOAP-ENV:Server',
                 role => 'urn:localhost',
                 message => "Error deserializing message: $@. \n"
             });
     };
-    if ( blessed($body) && $body->isa('SOAP::WSDL::SOAP::Typelib::Fault11') ) {
+    if (blessed($body) && $body->isa('SOAP::WSDL::SOAP::Typelib::Fault11')) {
         die $body;
     }
+
+    # lookup method name by SOAPAction
+    my $soap_action = $request->header('SOAPAction');
+    $soap_action = '' if not defined $soap_action;
+    $soap_action =~s{ \A(?:"|')(.+)(?:"|') \z }{$1}xms;
+    my $method_name = $action_map_ref_of{ $ident }->{ $soap_action };
 
 #    $dispatcher_of{ $ident }->dispatch({
 #        soap_action => $soap_action,
@@ -105,10 +63,34 @@ sub handle {
 #        request_header => $header,
 #    });
 
+    if (!$dispatch_to_of{ $ident }) {
+        die $deserializer_of{ $ident }->generate_fault({
+                code => 'SOAP-ENV:Server',
+                role => 'urn:localhost',
+                message => "No handler registered",
+            });
+    };
+
+    if (! defined $request->header('SOAPAction') ) {
+        die $deserializer_of{ $ident }->generate_fault({
+                code => 'SOAP-ENV:Server',
+                role => 'urn:localhost',
+                message => "Not found: No SOAPAction given",
+            });
+    };
+
+    if (! defined $method_name) {
+        die $deserializer_of{ $ident }->generate_fault({
+                code => 'SOAP-ENV:Server',
+                role => 'urn:localhost',
+                message => "Not found: No method found for the SOAPAction '$soap_action'",
+            });
+    };
+
     # find method in handling class/object
     my $method_ref = $dispatch_to_of{ $ident }->can($method_name);
 
-    if ( ! $method_ref) {
+    if (!$method_ref) {
         die $deserializer_of{ $ident }->generate_fault({
                 code => 'SOAP-ENV:Server',
                 role => 'urn:localhost',
@@ -119,7 +101,7 @@ sub handle {
     my ($response_body, $response_header) = $method_ref->($dispatch_to_of{ $ident }, $body, $header );
 
     return $serializer_of{ $ident }->serialize({
-        body   => $response_body,
+        body => $response_body,
         header => $response_header,
     });
 }

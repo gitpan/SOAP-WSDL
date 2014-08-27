@@ -12,7 +12,7 @@
 use lib 'lib/';
 use MyInterfaces::GlobalWeather::GlobalWeatherSoap;
 my $weather = MyInterfaces::GlobalWeather::GlobalWeatherSoap->new();
-my $result = $weather->GetWeather([{ CountryName => 'Germany', CityName => 'Munich' }]);
+my $result = $weather->GetWeather({ CountryName => 'Germany', CityName => 'Munich' });
 
 # boolean comparison overloaded
 die $result->get_faultstring()->get_value() if not ($result);   
