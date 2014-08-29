@@ -37,4 +37,4 @@ requires:
   URI: 0
   XML::Parser::Expat: 0
   perl: 5.008
-version: v3.0.0_1
+version: v3.0.0_2

@@ -7,10 +7,11 @@ use SOAP::WSDL::XSD::Typelib::Builtin;
 use Scalar::Util qw(blessed);
 use Data::Dumper;
 require Class::Std::Fast::Storable;
+use Class::Load ();
 
 use base qw(SOAP::WSDL::XSD::Typelib::Builtin::anyType);
 
-use version; our $VERSION = qv('3.00.0_1');
+use version; our $VERSION = qv('3.00.0_2');
 
 # remove in 2.1
 our $AS_HASH_REF_WITHOUT_ATTRIBUTES = 0;
@@ -155,9 +156,10 @@ sub _factory {
         my $type = $CLASSES_OF{ $class }->{ $name }
             or croak "No class given for $name";
 
-        $type->can('serialize')
-            or eval "require $type"
-                or croak $@;
+        # require all types here
+        Class::Load::is_class_loaded($type)
+            or eval { Class::Load::load_class $type }
+                 or croak $@;
 
         # check now, so we don't need to do it later.
         # $is_list is used in the methods created. Filling it now means
@@ -330,8 +332,7 @@ sub _factory {
             # do we have some content
             if (defined $element) {
                 $element = [ $element ] if not ref $element eq 'ARRAY';
-                # from 3.00.0_1 on $NAMES_OF is filled - use || $_; for
-                # backward compatibility
+                # use || $_; for backward compatibility
                 my $name = $NAMES_OF{$class}->{$_} || $_;
                 my $target_namespace = $_[0]->get_xmlns();
                 map {
