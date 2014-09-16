@@ -32,6 +32,7 @@
       },
       "runtime" : {
          "requires" : {
+            "Class::Load" : "0.2",
             "Class::Std::Fast" : "0.000005",
             "Cwd" : "0",
             "Data::Dumper" : "0",
@@ -55,5 +56,12 @@
       }
    },
    "release_status" : "stable",
-   "version" : "v3.1.0"
+   "resources" : {
+      "repository" : {
+         "type" : "git",
+         "url" : "https://github.com/scrottie/SOAP-WSDL.git",
+         "web" : "https://github.com/scrottie/SOAP-WSDL"
+      }
+   },
+   "version" : "v3.2.0"
 }

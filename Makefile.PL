@@ -23,10 +23,22 @@ WriteMakefile(
         'Test::More'              => 0,
         'URI'                     => 0,
         'XML::Parser::Expat'      => 0,
+        'Class::Load'             => 0.20,
         'perl'                    => q(5.008),
     },
     test => { RECURSIVE_TEST_FILES => 1, },
     ABSTRACT_FROM  => 'lib/SOAP/WSDL.pm',
     AUTHOR       => 'Scott Walters <scott@slowass.net>',
+    (eval { ExtUtils::MakeMaker->VERSION(6.46) } ? (META_MERGE => {
+    'meta-spec' => { version => 2 },
+     resources => {
+         repository => {
+             type => 'git',
+             url  => 'https://github.com/scrottie/SOAP-WSDL.git',
+             web  => 'https://github.com/scrottie/SOAP-WSDL',
+         },
+     }})
+     : ()
+   ),
 );
 

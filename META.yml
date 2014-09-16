@@ -18,6 +18,7 @@ no_index:
     - t
     - inc
 requires:
+  Class::Load: '0.2'
   Class::Std::Fast: '0.000005'
   Cwd: '0'
   Data::Dumper: '0'
@@ -37,4 +38,6 @@ requires:
   URI: '0'
   XML::Parser::Expat: '0'
   perl: '5.008'
-version: v3.1.0
+resources:
+  repository: https://github.com/scrottie/SOAP-WSDL.git
+version: v3.2.0
